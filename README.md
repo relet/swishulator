@@ -4,6 +4,8 @@ An emulator/simulator that reads plist level files from the popular competitive 
 
 Most parameters of the actual game are unknown and/or unrelated to physical units (such as the mysterious NoodleNewton). Feel free to experiment and optimize these.
 
+![Magnet 8 - Swish](/examples/mag8.png)
+
 ## requirements
 
  * python3, and some libraries: numpy, json, contextlib, base64
