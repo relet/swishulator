@@ -374,7 +374,7 @@ for node in nodes:
             p0 = plus(pos,loaded[i])
             p1 = plus(pos,loaded[i+1])
             segment = pymunk.Segment(static, p0, p1, SEGMENT_THICKNESS)
-            segment.elasticity = 2 #TODO: how bouncy? 
+            segment.elasticity = 1.5 #TODO: how bouncy? 
             segment.friction = TERRAIN_FRICTION
             segment.color=(40,40,150)
             segment.collision_type = collision_types['water']
