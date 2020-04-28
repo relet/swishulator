@@ -39,8 +39,19 @@ A number of constants can be set at the beginning of the simulation script. Plea
 
 They are set to somewhat sensible defaults, but there is almost as much room for improvement. 
 
+## screen sizes
+
+The simulator doesn't scroll along with the ball, so some levels are just too big for your screen. It is also currently configured for a rather large screen estate. The lines you can change are
+
+`SCALE = 1` - scales (hopefully) all elements in the game
+`window = (x,y)` - changes the size of the displayed window
+`screen_center = (x,y)` - pans the entire level. 
+
+If your screen just stays blank (except in headless mode, where it is supposed to be blank), try changing the SCALE, then changing the center. You might just be looking at the wrong portion of the level. Only if the game window is larger than your physical screen, reduce that. 
+
 ## known issues:
 
+ * The ball might bounce in the wrong direction at corners where two segments meet. The issue seems to be that he penetrates too deep so that he first hits the side of the angled segment instead of the face of the closer segment. Decreasing the step size might help. 
  * In general, all parameters are eyeballed - ball velocity and elasticity might be a bit on the high side.
  * Portal code is work in progress. Some settings work in some levels and fail in others. 
  * Rotating sticky and acid are not yet correctly simulated. Moving sticky and acid is. 
