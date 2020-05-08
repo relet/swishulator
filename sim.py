@@ -210,6 +210,9 @@ for node in nodes:
     width = float(node.get('width',0))
     height = float(node.get('height',0))
 
+    rotate = node.get('rotation-actions')
+    translate = node.get('position-actions')
+
     shapes = None
     if type_ == 'TerrainNode' and node['collisionsEnabled'] != "0":
         shapes = node['vertices-processed']
@@ -231,6 +234,9 @@ for node in nodes:
                 segment.friction = TERRAIN_FRICTION
                 segment.filter = solid_filter
                 segment.collision_type = collision_types['wall']
+                segment.color=(80,200,80)
+                if rotate or translate:
+                    segment.color=(20,60,20)
                 space.add(segment)
 
         body.angle = numpy.deg2rad(-rotation)
@@ -257,7 +263,7 @@ for node in nodes:
         body.position = pos
         body.reset_position = body.position
         segment = pymunk.Poly(body, loaded[:4], radius=SEGMENT_THICKNESS)
-        segment.color=(80,80,200,0)
+        segment.color=(80,80,200)
         segment.filter = pass_filter
         segment.collision_type = collision_types['antigrav']
         segment.sensor = True
@@ -270,7 +276,6 @@ for node in nodes:
         body.reset_angle = body.angle
         bodies[id_] = body
 
-    rotate = node.get('rotation-actions')
     for r in rotate:
         sequence = rotations.get(id_,{"steps":[]})
         rtype = r['type'] # Cool game
@@ -290,7 +295,6 @@ for node in nodes:
         sequence['steps'].append(step)
         rotations[id_]=sequence
 
-    translate = node.get('position-actions')
     old = (0,0)
     for t in translate:
         sequence = translations.get(id_,{"steps":[]})
@@ -323,7 +327,7 @@ for node in nodes:
                 'width':  int(width),
                 'height': int(height),
                 #VERTICAL axis is inverted, we have to go back from window size
-                'pos': (pos[0]-width/2, window[1]-pos[1]-height/2)
+                'pos': (int(pos[0]-width/2), int(window[1]-pos[1]-height/2))
                 }
         fd = open('tmp/'+id_+'_acid.png','wb')
         fd.write(base64.b64decode(acid))
@@ -341,7 +345,7 @@ for node in nodes:
                 'width':  int(width),
                 'height': int(height),
                 #VERTICAL axis is inverted, we have to go back from window size
-                'pos': (pos[0]-width/2, window[1]-pos[1]-height/2)
+                'pos': (int(pos[0]-width/2), int(window[1]-pos[1]-height/2))
                 }
         fd = open('tmp/'+id_+'_sticky.png','wb')
         fd.write(base64.b64decode(sticky))
@@ -387,7 +391,7 @@ for node in nodes:
         magnet = pymunk.Circle(body, radius, pos)
         magnet.filter = pass_filter
         magnet.sensor = True
-        magnet.color = (200, 200, 200)
+        magnet.color = (200, 200, 200, 50)
         magnet.collision_type = collision_types['magnet']
         magnets.append((pos, radius, strength))
         space.add(magnet)
@@ -604,7 +608,7 @@ def teleport(arbiter, space, data):
 
     # normalize target portal orientation and move 3 ball width away from the portal
     teleporting = True
-    ball.position = ball.position - n2 * BALL_RADIUS * 3 
+    ball.position = ball.position - n2 * BALL_RADIUS * 5 
     space.step(0.0001)
     return True
 
@@ -713,6 +717,8 @@ output = pygame.display.set_mode((int(WIDTH*SCALE), int(HEIGHT*SCALE)))
 
 if not mode == MODE_HEADLESS:
     draw_options = pymunk.pygame_util.DrawOptions(screen)
+
+    print(draw_options)
 
 # masks - we need these in headless mode
 for m in masks:
@@ -870,7 +876,6 @@ while simulating:
         if dead or stuck or stationary > 100 or ball.position.x < 0 or ball.position.y < 0 or ball.position.x > right or ball.position.y > top or cycle > 10000:
             if stationary > 100 or stuck:
                 # TODO: improve "proximity" function for the hole, sometimes the shot that is closest to the hole is not the smartest choice.
-
                 dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
                 #dist = (stopx-ball.position.x)*3 + ball.position.y # as right as possible, then low
                 #dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
@@ -946,7 +951,7 @@ if mode == MODE_HEADLESS:
 
 if mode == MODE_SHOW or mode == MODE_SPREAD:
     while True:
-        time.sleep(1)
+        time.sleep(1.0)
 
 pygame.quit()
 
