@@ -33,6 +33,20 @@ where:
  
  [1] This is somewhat calibrated for around 36.4-40N. I am not sure how linear the scale is, so currently lower values fall short of the mark, while power ball shots overshoot.
  
+## examples:
+
+`./sim.py level0.plist`
+
+tries to find the best shot off tee in this level using the default settings (Power 13/40NN), angle 0-180 in steps of 0.1, regular ball, HEADLESS mode (scanning). A black window will open while the engine is scanning through 1800 possible angles. When finished, it will display possible swishes, the best angle, and the best angle for various spreads. Finally, a new window will pop up simulating the best angle in SHOW mode.
+
+`./sim.py level0.plist 45 30 show`
+
+simulates a single shot with angle 45, power 30 NN. 
+
+`./sim.py level0.plist 0 40 headless shield` 
+
+tries to find the best shot using shield ball. Here, we explicitly specify the starting angle (which is increased in steps of 0.1), power in NoodleNewton, headless mode and powerup.
+
 ## settings:
 
 A number of constants can be set at the beginning of the simulation script. Please check the section `VARIABLES WE NEED TO EYEBALL`.
