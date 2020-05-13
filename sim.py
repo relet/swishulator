@@ -56,7 +56,7 @@ BALL_RADIUS = 6.5
 BALL_ELASTICITY = 0.6
 BALL_FRICTION = 0.7
 
-POWER_FACTOR = 2.5
+POWER_FACTOR = 2.4331
 TIME_FACTOR = 0.3333
 
 
@@ -65,9 +65,8 @@ WIDTH,HEIGHT = window
 screen_center = (0,2500)
 #screen_center = (0,3000)
 
-#power = 24.2
-#power = 36.4
-power = 40
+#power = 39
+power = 41.1
 init_angle = 1
 mode = MODE_HEADLESS
 submode = SUBMODE_NORMAL
@@ -91,18 +90,18 @@ if len(sys.argv)>5:
     if sys.argv[5] == "heavy":
         BALL_ELASTICITY = 0
         TERRAIN_ELASTICITY = 0
-        if abs(power-40) < 0.01:
-            power = 46.4 # P12 heavy default
+        if abs(power-41.1) < 0.01:
+            power = 26.1 # P12 heavy default
         submode = SUBMODE_HEAVY
     elif sys.argv[5] == "shield":
         #TODO: make water bouncy, saws solid, and disable laser and acid
         submode = SUBMODE_SHIELD
-        if abs(power-40) < 0.01:
-            power = 36.4 # P12 shield default
+        if abs(power-41.1) < 0.01:
+            power = 39 # P12 shield default
     elif sys.argv[5] == "antigrav":
         submode = SUBMODE_ANTIGRAV
-        if abs(power-40) < 0.01:
-            power = 36.4 # P12 antigrav default
+        if abs(power-41.1) < 0.01:
+            power = 39 # P12 antigrav default
     else:
         spread = float(sys.argv[5])
 if len(sys.argv)>2:
