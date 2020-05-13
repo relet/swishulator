@@ -755,7 +755,7 @@ repeat = 0
 font = pygame.font.Font('freesansbold.ttf', 32)
 text1 = font.render("{}".format(sys.argv[1]), True, (255, 255, 255), (0,0,0))
 text2 = font.render("{} degrees".format(" ".join(sys.argv[2:3]), " ".join(sys.argv[5:])), True, (255, 255, 255), (0,0,0))
-text3 = font.render("{:.1f}N {}".format(power, " ".join(sys.argv[5:])), True, (255, 255, 255), (0,0,0))
+text3 = font.render("{:.1f}NN {}".format(power, " ".join(sys.argv[5:])), True, (255, 255, 255), (0,0,0))
 
 while simulating:
     now = 0
