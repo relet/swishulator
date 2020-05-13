@@ -30,6 +30,7 @@ where:
    * **heavy**: remove ball elasticity. 
    * **antigrav**: reverse gravity
    * **shield**: change saws and acid into regular obstacles, allow one bounce on water
+   * **sticky**: stop calculations at the first obstacle hit
  
  [1] This is somewhat calibrated for around 36.4-40N. I am not sure how linear the scale is, so currently lower values fall short of the mark, while power ball shots overshoot.
  

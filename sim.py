@@ -41,6 +41,7 @@ SUBMODE_NORMAL = 0
 SUBMODE_HEAVY = 1
 SUBMODE_SHIELD = 2
 SUBMODE_ANTIGRAV = 3
+SUBMODE_STICKY = 4
 
 #VARIABLES WE NEED TO EYEBALL
 
@@ -102,6 +103,10 @@ if len(sys.argv)>5:
         submode = SUBMODE_ANTIGRAV
         if abs(power-41.1) < 0.01:
             power = 39 # P12 antigrav default
+    elif sys.argv[5] == "sticky":
+        submode = SUBMODE_STICKY
+        if abs(power-41.1) < 0.01:
+            power = 39 # P12 sticky default
     else:
         spread = float(sys.argv[5])
 if len(sys.argv)>2:
@@ -643,7 +648,7 @@ def check_wall_type(arbiter, space, data):
         try:
             #TODO: pixel index out of range - we'll have to properly reverse calculate for rotations
             c = sticky['img'].get_at(imgxy)
-            if c[1] == 40:
+            if c[1] == 40 or submode == SUBMODE_STICKY:
                 return stick(arbiter, space, data)
         except:
             pass #ignore moving sticky/acid
