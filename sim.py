@@ -653,7 +653,7 @@ def check_wall_type(arbiter, space, data):
         except:
             pass #ignore moving sticky/acid
     if submode == SUBMODE_STICKY:
-        if abs(ball.position.x - startx)>15 and abs(ball.position.y - starty)>15:
+        if abs(ball.position.x - startx)>1 and abs(ball.position.y - starty)>1:
            return stick(arbiter, space, data)
     return True
 
