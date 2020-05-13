@@ -648,10 +648,13 @@ def check_wall_type(arbiter, space, data):
         try:
             #TODO: pixel index out of range - we'll have to properly reverse calculate for rotations
             c = sticky['img'].get_at(imgxy)
-            if c[1] == 40 or submode == SUBMODE_STICKY:
+            if c[1] == 40:
                 return stick(arbiter, space, data)
         except:
             pass #ignore moving sticky/acid
+    if submode == SUBMODE_STICKY:
+        if abs(ball.position.x - startx)>15 and abs(ball.position.y - starty)>15:
+           return stick(arbiter, space, data)
     return True
 
 def check_laser(arbiter, space, data):
@@ -713,7 +716,7 @@ fry.pre_solve = check_laser
 
 
 # visual
-SCALE = 1
+SCALE = 0.25
 
 pygame.init()
 screen = pygame.Surface((int(WIDTH), int(HEIGHT)))
