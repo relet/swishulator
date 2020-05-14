@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import base64
 import contextlib
 import json
@@ -66,61 +67,67 @@ WIDTH,HEIGHT = window
 screen_center = (0,2500)
 #screen_center = (0,3000)
 
-#power = 39
+# defaults(some are overridden in argparse below) 
 power = 41.1
 init_angle = 1
 mode = MODE_HEADLESS
 submode = SUBMODE_NORMAL
 
-# reading command line arguments directly from argv
+# reading command line arguments
 
-if len(sys.argv)>4:
-    if sys.argv[4]=="headless":
+parser = argparse.ArgumentParser('./sim.py')
+parser.add_argument('level', type=str, help='plist file to read and run the simulation in', nargs=1)
+parser.add_argument('-a', '--angle', type=float, help='angle of the shot/starting angle of the simulation', nargs='?', default=0.0)
+parser.add_argument('-m', '--mode', type=str, help='simulation mode [headless, show, (sim, spread)]', nargs='?', default='headless')
+parser.add_argument('-n', '--newton', type=float, help='ball power (NoodleNewton)', nargs='?', default=41.1)
+parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs='?', default=13)
+parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky]', nargs='?', default='regular')
+parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
+args = parser.parse_args()
+
+if args.mode:
+    if args.mode=="headless":
         mode = MODE_HEADLESS
-    elif sys.argv[4]=="sim":
+    elif args.mode=="sim":
         mode = MODE_SIM
-    elif sys.argv[4]=="spread":
+    elif args.mode=="spread":
         mode = MODE_SPREAD
-    else:
+    elif args.mode=="show":
         mode = MODE_SHOW
 
-if len(sys.argv)>3:
-    power = float(sys.argv[3])
+if args.newton:
+    power = args.newton
 
-if len(sys.argv)>5:
-    if sys.argv[5] == "heavy":
+if args.powerup:
+    if args.powerup == "heavy":
         BALL_ELASTICITY = 0
         TERRAIN_ELASTICITY = 0
-        if abs(power-41.1) < 0.01:
-            power = 26.1 # P12 heavy default
         submode = SUBMODE_HEAVY
-    elif sys.argv[5] == "shield":
-        #TODO: make water bouncy, saws solid, and disable laser and acid
+    elif args.powerup == "shield":
         submode = SUBMODE_SHIELD
-        if abs(power-41.1) < 0.01:
-            power = 39 # P12 shield default
-    elif sys.argv[5] == "antigrav":
+    elif args.powerup == "antigrav":
         submode = SUBMODE_ANTIGRAV
-        if abs(power-41.1) < 0.01:
-            power = 39 # P12 antigrav default
-    elif sys.argv[5] == "sticky":
+    elif args.powerup == "sticky":
         submode = SUBMODE_STICKY
-        if abs(power-41.1) < 0.01:
-            power = 39 # P12 sticky default
-    else:
-        spread = float(sys.argv[5])
-if len(sys.argv)>2:
-    init_angle = float(sys.argv[2])
+
+if args.spread:
+    spread = args.spread
+
+if args.power:
+    #TOD0: adjust newtons according to args.powerup
+    pass
+
+if args.angle:
+    init_angle = args.angle #archangel? 
 
 angle = init_angle
 
 # LOAD TERRAIN FILE
 
 try:
-    data=json.load(open(sys.argv[1],"r"))
+    data=json.load(open(args.level[0],"r"))
 except Exception as ex:
     print(ex)
-    print("Usage: sim.py plistfile")
     sys.exit(1)
 
 # UTILITY METHODS
@@ -760,10 +767,10 @@ tests = 0
 SPREAD_STEPS = 5.0
 repeat = 0
 
-font = pygame.font.Font('freesansbold.ttf', 32)
-text1 = font.render("{}".format(sys.argv[1]), True, (255, 255, 255), (0,0,0))
-text2 = font.render("{} degrees".format(" ".join(sys.argv[2:3]), " ".join(sys.argv[5:])), True, (255, 255, 255), (0,0,0))
-text3 = font.render("{:.1f}NN {}".format(power, " ".join(sys.argv[5:])), True, (255, 255, 255), (0,0,0))
+font = pygame.font.Font('freesansbold.ttf', 64)
+text1 = font.render("{}".format(args.level[0]), True, (255, 255, 255), (0,0,0))
+text2 = font.render("{} degrees".format(args.angle), True, (255, 255, 255), (0,0,0))
+text3 = font.render("{:.1f}NN {}".format(power, args.powerup), True, (255, 255, 255), (0,0,0))
 
 while simulating:
     now = 0
@@ -820,8 +827,8 @@ while simulating:
                 if event.type == pygame.QUIT:
                     running = False
             screen.blit(text1, (50, 300))
-            screen.blit(text2, (50, 330))
-            screen.blit(text3, (50, 360))
+            screen.blit(text2, (50, 360))
+            screen.blit(text3, (50, 420))
             
         if cycle % 5 == 0:
             if mode == MODE_SIM or mode == MODE_SPREAD:
@@ -964,6 +971,7 @@ pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS:
-    extra = " ".join(sys.argv[5:])
-    os.system(" ".join(sys.argv[:2])+" {:.1f} {:.1f} show {}".format(*best, extra))
+    rerun = "{} -m show -a {} -n {} -u {} {}".format(sys.argv[0], args.angle, args.newton, args.powerup, args.level[0])
+    print(rerun)
+    os.system(rerun)
 
