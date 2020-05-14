@@ -31,6 +31,16 @@ collision_types = {
         "lasersensor": 8
         }
 
+SKILLS = {
+        'regular':[25,25.7,26.5,27.4,28.4,29.5,30.7,32.1,33.6,35.3,37.1,39,41.1],
+        'super':[54.1,55.8,57.7,60,62.4,65.2,68.3,71.7,75.5,79.6,84.1,89,89],
+        'heavy':[17.4,17.8,18.3,18.9,19.5,20.2,21,21.8,22.8,23.8,24.9,26.1,26.1],
+        'saw':[29.9,30.7,31.5,32.5,33.6,34.8,36.2,37.7,39.3,41.1,43,45.1,45.1]
+        }
+SKILLS['sticky']=SKILLS['regular']
+SKILLS['shield']=SKILLS['regular']
+
+
 # simulation modes
 
 MODE_SIM  = 0
@@ -78,7 +88,7 @@ parser = argparse.ArgumentParser('./sim.py')
 parser.add_argument('level', type=str, help='plist file to read and run the simulation in', nargs=1)
 parser.add_argument('-a', '--angle', type=float, help='angle of the shot/starting angle of the simulation', nargs='?', default=0.0)
 parser.add_argument('-m', '--mode', type=str, help='simulation mode [headless, show, (sim, spread)]', nargs='?', default='headless')
-parser.add_argument('-n', '--newton', type=float, help='ball power (NoodleNewton)', nargs='?', default=41.1)
+parser.add_argument('-n', '--newton', type=float, help='ball power (NoodleNewton)', nargs='?', default=None)
 parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs='?', default=13)
 parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky]', nargs='?', default='regular')
 parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
@@ -114,9 +124,9 @@ if args.powerup:
 if args.spread:
     spread = args.spread
 
-if args.power:
-    #TOD0: adjust newtons according to args.powerup
-    pass
+if args.power and not args.newton:
+    print (args.powerup, args.power)
+    power = SKILLS[args.powerup][args.power-1] 
 
 if args.angle:
     init_angle = args.angle #archangel? 
