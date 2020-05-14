@@ -46,18 +46,18 @@ SUBMODE_STICKY = 4
 
 #VARIABLES WE NEED TO EYEBALL
 
-
 TERRAIN_ELASTICITY = 0.5
 TERRAIN_FRICTION = 0.5
 SEGMENT_THICKNESS = 2
 
-BALL_MASS = 1
+BALL_MASS = 1.0
 BALL_MOMENT = 10
 BALL_RADIUS = 6.5
 BALL_ELASTICITY = 0.6
 BALL_FRICTION = 0.7
 
-POWER_FACTOR = 2.3
+POWER_FACTOR = 1.35109
+POWER_BASELINE = 39
 TIME_FACTOR = 0.3333
 
 
@@ -778,7 +778,7 @@ text3 = font.render("{:.1f}NN {}".format(power, args.powerup), True, (255, 255, 
 while simulating:
     now = 0
     dist = None
-    POWER = power * POWER_FACTOR 
+    POWER = power * POWER_FACTOR + POWER_BASELINE
     ANGLE = angle
 
     if mode == MODE_SPREAD:
