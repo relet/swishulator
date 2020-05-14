@@ -46,7 +46,6 @@ SUBMODE_STICKY = 4
 
 #VARIABLES WE NEED TO EYEBALL
 
-WAIT = 0.0 # wait until starting.
 
 TERRAIN_ELASTICITY = 0.5
 TERRAIN_FRICTION = 0.5
@@ -84,6 +83,7 @@ parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs=
 parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky]', nargs='?', default='regular')
 parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
 parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
+parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=0.0)
 args = parser.parse_args()
 
 if args.mode:
@@ -122,6 +122,8 @@ if args.angle:
     init_angle = args.angle #archangel? 
 
 angle = init_angle
+
+WAIT = args.delay # wait until starting.
 
 # LOAD TERRAIN FILE
 
