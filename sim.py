@@ -48,7 +48,7 @@ SUBMODE_STICKY = 4
 
 WAIT = 0.0 # wait until starting.
 
-TERRAIN_ELASTICITY = 0.6
+TERRAIN_ELASTICITY = 0.5
 TERRAIN_FRICTION = 0.5
 SEGMENT_THICKNESS = 2
 
@@ -58,7 +58,7 @@ BALL_RADIUS = 6.5
 BALL_ELASTICITY = 0.6
 BALL_FRICTION = 0.7
 
-POWER_FACTOR = 2.4331
+POWER_FACTOR = 2.325
 TIME_FACTOR = 0.3333
 
 
@@ -83,6 +83,7 @@ parser.add_argument('-n', '--newton', type=float, help='ball power (NoodleNewton
 parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs='?', default=13)
 parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky]', nargs='?', default='regular')
 parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
+parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
 args = parser.parse_args()
 
 if args.mode:
@@ -723,7 +724,7 @@ fry.pre_solve = check_laser
 
 
 # visual
-SCALE = 0.25
+SCALE = args.zoom
 
 pygame.init()
 screen = pygame.Surface((int(WIDTH), int(HEIGHT)))
@@ -918,7 +919,7 @@ while simulating:
                 best = (ANGLE, power)
 
         # adjust ball speed for next cycle
-        ball.angular_velocity = 0 # ball.angular_velocity/1.5
+        ball.angular_velocity = 0 
         ball.velocity += (accx, accy)
 
         # calculate magnet activity
