@@ -33,12 +33,14 @@ collision_types = {
 
 SKILLS = {
         'regular':[25,25.7,26.5,27.4,28.4,29.5,30.7,32.1,33.6,35.3,37.1,39,41.1],
+        'maxp12':[25,25.7,26.5,27.4,28.4,29.5,30.7,32.1,33.6,35.3,37.1,39,39],
         'super':[54.1,55.8,57.7,60,62.4,65.2,68.3,71.7,75.5,79.6,84.1,89,89],
         'heavy':[17.4,17.8,18.3,18.9,19.5,20.2,21,21.8,22.8,23.8,24.9,26.1,26.1],
         'saw':[29.9,30.7,31.5,32.5,33.6,34.8,36.2,37.7,39.3,41.1,43,45.1,45.1]
         }
-SKILLS['sticky']=SKILLS['regular']
-SKILLS['shield']=SKILLS['regular']
+SKILLS['sticky']=SKILLS['maxp12']
+SKILLS['shield']=SKILLS['maxp12']
+SKILLS['tunnel']=SKILLS['maxp12']
 
 
 # simulation modes
@@ -53,6 +55,7 @@ SUBMODE_HEAVY = 1
 SUBMODE_SHIELD = 2
 SUBMODE_ANTIGRAV = 3
 SUBMODE_STICKY = 4
+SUBMODE_TUNNEL = 5
 
 #VARIABLES WE NEED TO EYEBALL
 
@@ -62,9 +65,12 @@ SEGMENT_THICKNESS = 2
 
 BALL_MASS = 1.0
 BALL_MOMENT = 10
-BALL_RADIUS = 6.5
+BALL_RADIUS = 5.0
 BALL_ELASTICITY = 0.6
 BALL_FRICTION = 0.7
+
+# distance the ball has to travel before switching status (tunnel, sticky, ghost)
+GHOST_DISTANCE = 15
 
 POWER_FACTOR = 1.35109
 POWER_BASELINE = 39
@@ -120,6 +126,8 @@ if args.powerup:
         submode = SUBMODE_ANTIGRAV
     elif args.powerup == "sticky":
         submode = SUBMODE_STICKY
+    elif args.powerup == "tunnel":
+        submode = SUBMODE_TUNNEL
 
 if args.spread:
     spread = args.spread
@@ -553,6 +561,8 @@ teleporting = None
 accx = 0
 accy = 0
 splashed = False
+tunneled = 0
+tunnelxy = Vec2d(0,0)
 
 ANTIGRAV_FACTOR = 0.02
 #ANTIGRAV_FACTOR = 0.033
@@ -642,6 +652,8 @@ def unteleport(arbiter, space, data):
     return False
 
 def check_wall_type(arbiter, space, data):
+    global tunneled, tunnelxy
+
     point = arbiter.contact_point_set.points[0].point_a
     body = arbiter.shapes[0].body
     id_ = body.id_
@@ -672,9 +684,22 @@ def check_wall_type(arbiter, space, data):
                 return stick(arbiter, space, data)
         except:
             pass #ignore moving sticky/acid
-    if submode == SUBMODE_STICKY:
-        if abs(ball.position.x - startx)>1 and abs(ball.position.y - starty)>1:
-           return stick(arbiter, space, data)
+    if submode == SUBMODE_STICKY and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
+       return stick(arbiter, space, data)
+    if submode == SUBMODE_TUNNEL and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
+        if not tunneled:
+            tunneled = 1
+            tunnelxy = ball.position
+            return False
+        elif tunneled == 1:
+            if abs(ball.position.x - tunnelxy.x)>GHOST_DISTANCE or abs(ball.position.y - tunnelxy.y)>GHOST_DISTANCE:
+                tunneled += 1
+                tunnelxy = ball.position
+            return False
+        elif tunneled == 2:
+            if abs(ball.position.x - tunnelxy.x)>GHOST_DISTANCE or abs(ball.position.y - tunnelxy.y)<GHOST_DISTANCE:
+                return False
+        # else see below
     return True
 
 def check_laser(arbiter, space, data):
@@ -790,6 +815,9 @@ while simulating:
     dist = None
     POWER = power * POWER_FACTOR + POWER_BASELINE
     ANGLE = angle
+    splashed = False
+    tunneled = False
+    tunnelxy = Vec2d(0,0)
 
     if mode == MODE_SPREAD:
         ANGLE = angle - (spread/2.0) + (spread / (SPREAD_STEPS-1)) * repeat
@@ -984,7 +1012,7 @@ pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS:
-    rerun = "{} -m show -a {} -n {} -u {} {}".format(sys.argv[0], args.angle, args.newton, args.powerup, args.level[0])
+    rerun = "{} -m show -a {} -n {} -u {} {}".format(sys.argv[0], best[0], power, args.powerup, args.level[0])
     print(rerun)
     os.system(rerun)
 
