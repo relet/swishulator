@@ -958,7 +958,20 @@ while simulating:
             results[round(ANGLE*10)] = dist
 
             if not dead and ((bestdistance is None) or (dist < bestdistance)):
-                print("Better", dist, bestdistance, angle, dead, stuck, stationary, ball.position.x, ball.position.y, cycle, top, right)
+                reason = "No reason"
+                if dead:
+                    reason = "Dead"
+                elif stuck:
+                    reason = "Stuck"
+                elif stationary > 100:
+                    reason = "Stationary"
+                elif ball.position.y < 0:
+                    reason = "Exit bottom"
+                elif ball.position.y > top:
+                    reason = "Exit top"
+                elif cycle > 10000:
+                    reason = "Timeout"
+                print("Better", angle, dist, bestdistance, reason)
                 bestdistance = dist
                 best = (ANGLE, power)
 
