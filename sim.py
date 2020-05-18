@@ -133,7 +133,6 @@ if args.spread:
     spread = args.spread
 
 if args.power and not args.newton:
-    print (args.powerup, args.power)
     power = SKILLS[args.powerup][args.power-1] 
 
 if args.angle:
@@ -351,8 +350,6 @@ for node in nodes:
 
     acid = node.get('texture-acid-mask')
     if acid:
-        print("Acid size: ", (width, height))
-        print("Acid position: ", pos[0]-width/2, window[1]-pos[1]-height/2)
         do_acid = {
                 'id': id_+'_acid',
                 'type': 'acid',
@@ -369,8 +366,6 @@ for node in nodes:
 
     sticky = node.get('texture-sticky-mask')
     if sticky:
-        print("Sticky size: ", (width, height))
-        print("Sticky position: ", pos[0]-width/2, window[1]-pos[1]-height/2)
         do_sticky = {
                 'id': id_+'_sticky',
                 'type': 'sticky',
@@ -783,13 +778,10 @@ output = pygame.display.set_mode((int(WIDTH*SCALE), int(HEIGHT*SCALE)))
 if not mode == MODE_HEADLESS:
     draw_options = pymunk.pygame_util.DrawOptions(screen)
 
-    print(draw_options)
-
 # masks - we need these in headless mode
 for m in masks:
     id_ = m['id']
     img = pygame.image.load('tmp/'+id_+'.png').convert_alpha()
-    print("IMAGE ", id_, img.get_size())
     if m['type']=='acid':
         img.fill((0,80,0,50), special_flags=pygame.BLEND_MIN) 
     if m['type']=='sticky':
@@ -941,7 +933,8 @@ while simulating:
         else:
             stationary = 0
 
-        if dead or stuck or stationary > 100 or ball.position.x < 0 or ball.position.y < 0 or ball.position.x > right or ball.position.y > top or cycle > 10000:
+        if dead or stuck or stationary > 100 or ball.position.y < 0 or ball.position.y > top or cycle > 10000:
+            dist = sys.float_info.max-1
             if stationary > 100 or stuck:
                 # TODO: improve "proximity" function for the hole, sometimes the shot that is closest to the hole is not the smartest choice.
                 dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
@@ -949,9 +942,6 @@ while simulating:
                 #dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
                 #dist = -ball.position.x-ball.position.y # as high as possible, then right
                 #dist = -ball.position.x+ball.position.y*4 # as low as possible, then right
-            else:
-                dist = sys.float_info.max-1
-            stationary = 0
 
             if dist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
@@ -967,10 +957,12 @@ while simulating:
 
             results[round(ANGLE*10)] = dist
 
-            if not dead and ((bestdistance is None) or (dist < bestdistance)):
-                print("Better", dist, bestdistance, angle)
+            if not dead and not ball.position.y < 0 and ((bestdistance is None) or (dist < bestdistance)):
+                #print("Better", dist, bestdistance, angle, dead, stuck, stationary, ball.position.x, ball.position.y, cycle, top, right)
                 bestdistance = dist
                 best = (ANGLE, power)
+
+            stationary = 0
 
         # adjust ball speed for next cycle
         ball.angular_velocity = 0 
