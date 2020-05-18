@@ -96,7 +96,7 @@ parser.add_argument('-a', '--angle', type=float, help='angle of the shot/startin
 parser.add_argument('-m', '--mode', type=str, help='simulation mode [headless, show, (sim, spread)]', nargs='?', default='headless')
 parser.add_argument('-n', '--newton', type=float, help='ball power (NoodleNewton)', nargs='?', default=None)
 parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs='?', default=13)
-parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky]', nargs='?', default='regular')
+parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky, tunnel, super]', nargs='?', default='regular')
 parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
 parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
 parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=0.0)
@@ -490,7 +490,7 @@ for node in nodes:
             on = float(loads_coord(snap['phaseOnDuration']))
             off = float(loads_coord(snap['phaseOffDuration']))
 
-            radius = 800 # FIXME until it hits a wall?
+            radius = 200 # FIXME until it hits a wall?
             # TODO: we will check collisions for the sensor and adjust the length of the laser accordingly
             rsens  = 80 
 
@@ -957,8 +957,8 @@ while simulating:
 
             results[round(ANGLE*10)] = dist
 
-            if not dead and not ball.position.y < 0 and ((bestdistance is None) or (dist < bestdistance)):
-                #print("Better", dist, bestdistance, angle, dead, stuck, stationary, ball.position.x, ball.position.y, cycle, top, right)
+            if not dead and ((bestdistance is None) or (dist < bestdistance)):
+                print("Better", dist, bestdistance, angle, dead, stuck, stationary, ball.position.x, ball.position.y, cycle, top, right)
                 bestdistance = dist
                 best = (ANGLE, power)
 
@@ -1017,7 +1017,7 @@ if mode == MODE_SHOW or mode == MODE_SPREAD:
 pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
-if mode == MODE_HEADLESS:
+if mode == MODE_HEADLESS and best:
     rerun = "{} -m show -a {} -n {} -u {} -z {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, args.level[0])
     print(rerun)
     os.system(rerun)
