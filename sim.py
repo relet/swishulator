@@ -178,7 +178,7 @@ def make_square(c):
 def distance(x1,x2,y1,y2):
     dx = x2-x1
     dy = y2-y1
-    return math.sqrt(dx*dx+abs(dy*dy))
+    return math.sqrt(dx*dx+dy*dy)
 
 
 # PARAMETERS FROM DATA FILE
@@ -686,19 +686,32 @@ def check_wall_type(arbiter, space, data):
             pass #ignore moving sticky/acid
     if submode == SUBMODE_STICKY and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
        return stick(arbiter, space, data)
-    if submode == SUBMODE_TUNNEL and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
+    if submode == SUBMODE_TUNNEL and (ball.velocity.y<0 or abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE) and ball.position.x>GHOST_DISTANCE and ball.position.x < right-GHOST_DISTANCE:
         if not tunneled:
+            #print ("Tunnel start")
+            #input()
             tunneled = 1
-            tunnelxy = ball.position
+            tunnelxy = Vec2d(ball.position)
             return False
         elif tunneled == 1:
             if abs(ball.position.x - tunnelxy.x)>GHOST_DISTANCE or abs(ball.position.y - tunnelxy.y)>GHOST_DISTANCE:
-                tunneled += 1
-                tunnelxy = ball.position
+                #print ("Tunnel stop", abs(ball.position.x - tunnelxy.x), abs(ball.position.y - tunnelxy.y))
+                #input()
+                tunneled = 2
+            else:
+                #print ("Not fully entered", abs(ball.position.x - tunnelxy.x), abs(ball.position.y - tunnelxy.y))
+                #input()
+                pass
+            tunnelxy = Vec2d(ball.position)
             return False
         elif tunneled == 2:
-            if abs(ball.position.x - tunnelxy.x)>GHOST_DISTANCE or abs(ball.position.y - tunnelxy.y)<GHOST_DISTANCE:
+            if abs(ball.position.x - tunnelxy.x)<GHOST_DISTANCE or abs(ball.position.y - tunnelxy.y)<GHOST_DISTANCE:
+                #print ("Not fully exited", abs(ball.position.x - tunnelxy.x), abs(ball.position.y - tunnelxy.y))
+                #input()
+                tunnelxy = Vec2d(ball.position)
                 return False
+            else: 
+                tunneled = 3
         # else see below
     return True
 
@@ -955,6 +968,7 @@ while simulating:
             results[round(ANGLE*10)] = dist
 
             if not dead and ((bestdistance is None) or (dist < bestdistance)):
+                print("Better", dist, bestdistance, angle)
                 bestdistance = dist
                 best = (ANGLE, power)
 
@@ -977,7 +991,7 @@ while simulating:
     angle = (round(angle * 10) + 1) / 10.0 
 
     tests += 1
-    if tests == 1780:
+    if (submode != SUBMODE_TUNNEL and tests == 1800) or (tests == 3600):
         simulating=False
         print ("BEST ANGLE: ", best)
 
@@ -1012,7 +1026,7 @@ pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS:
-    rerun = "{} -m show -a {} -n {} -u {} {}".format(sys.argv[0], best[0], power, args.powerup, args.level[0])
+    rerun = "{} -m show -a {} -n {} -u {} -z {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, args.level[0])
     print(rerun)
     os.system(rerun)
 
