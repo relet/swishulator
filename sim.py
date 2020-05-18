@@ -832,6 +832,8 @@ while simulating:
             print ("Simulating", (ANGLE, POWER))
 
     ball.position = (startx, starty+5)
+    ball.velocity = (0,0)
+    ball.angular_velocity = 0
     vy = POWER * math.sin(numpy.deg2rad(ANGLE))
     vx = POWER * math.cos(numpy.deg2rad(ANGLE))
 
