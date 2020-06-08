@@ -7,6 +7,7 @@ import json
 import math
 import numpy
 import os
+import re
 import sys
 import time
 
@@ -59,14 +60,14 @@ SUBMODE_TUNNEL = 5
 
 #VARIABLES WE NEED TO EYEBALL
 
-TERRAIN_ELASTICITY = 0.5
+TERRAIN_ELASTICITY = 0.55
 TERRAIN_FRICTION = 0.5
 SEGMENT_THICKNESS = 2
 
 BALL_MASS = 1.0
 BALL_MOMENT = 10
 BALL_RADIUS = 5.0
-BALL_ELASTICITY = 0.6
+BALL_ELASTICITY = 0.65
 BALL_FRICTION = 0.7
 
 # distance the ball has to travel before switching status (tunnel, sticky, ghost)
@@ -99,7 +100,7 @@ parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs=
 parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky, tunnel, super]', nargs='?', default='regular')
 parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
 parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
-parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=0.0)
+parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=3.05)
 args = parser.parse_args()
 
 if args.mode:
@@ -935,15 +936,16 @@ while simulating:
         else:
             stationary = 0
 
-        if dead or stuck or stationary > 100 or ball.position.y < 0 or ball.position.y > top or cycle > 10000:
+        if dead or stuck or stationary > 100 or ball.position.y < 0 or ball.position.y > top or cycle > 2000:
             dist = sys.float_info.max-1
             if stationary > 100 or stuck:
                 # TODO: improve "proximity" function for the hole, sometimes the shot that is closest to the hole is not the smartest choice.
-                dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
-                #dist = (stopx-ball.position.x)*3 + ball.position.y # as right as possible, then low
+                #dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
+                #dist = (stopx-ball.position.x)*3 - ball.position.y # as right as possible, then low
                 #dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
                 #dist = -ball.position.x-ball.position.y # as high as possible, then right
-                #dist = -ball.position.x+ball.position.y*4 # as low as possible, then right
+                dist = ball.position.x+ball.position.y*4 # as low as possible, then right
+                #dist = dist + cycle  # include speed in the result
 
             if dist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
@@ -1002,6 +1004,25 @@ while simulating:
         simulating=False
         print ("BEST ANGLE: ", best)
 
+        try:
+          # writing results to JSON dump, only for levels in the correct format
+          fd = open("results.json","r")
+          besties = json.load(fd)
+          fd.close()
+  
+          levelfile = args.level[0]
+          path, course, level_id, ext = re.split('[/._]', levelfile)
+          besties[course] = besties.get(course, {})
+          besties[course][int(level_id)] = besties.get(course).get(int(level_id),{})
+          besties[course][int(level_id)][best[1]] = best[0]
+
+          fd = open("results.json","w")
+          json.dump(besties, fd)
+          fd.close()
+        except Exception as x:
+          print(x)
+          sys.exit(1)
+
 if mode == MODE_HEADLESS:
     print("Calculating spread")
     for spread in range(1, 36):
@@ -1033,7 +1054,7 @@ pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS and best:
-    rerun = "{} -m show -a {} -n {} -u {} -z {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, args.level[0])
+    rerun = "{} -m show -a {} -n {} -u {} -z {} -d {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, WAIT, args.level[0])
     print(rerun)
     os.system(rerun)
 
