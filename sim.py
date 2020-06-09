@@ -674,6 +674,9 @@ def unteleport(arbiter, space, data):
 
 def check_wall_type(arbiter, space, data):
     global tunneled, tunnelxy
+    global teleporting
+
+    teleporting = False
 
     point = arbiter.contact_point_set.points[0].point_a
     body = arbiter.shapes[0].body
@@ -779,7 +782,7 @@ beam = space.add_collision_handler(
             collision_types['ball']
             )
 beam.pre_solve = teleport
-beam.separate = unteleport
+#beam.separate = unteleport
 
 bounce = space.add_collision_handler(
             collision_types['wall'],
