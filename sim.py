@@ -101,6 +101,7 @@ parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regula
 parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
 parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
 parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=3.05)
+parser.add_argument('-t', '--target', type=str, help='optimization target (distance, high, low, left, right)', nargs='?', default='distance')
 args = parser.parse_args()
 
 if args.mode:
@@ -115,6 +116,8 @@ if args.mode:
 
 if args.newton:
     power = args.newton
+
+target = args.target
 
 if args.powerup:
     if args.powerup == "heavy":
@@ -614,17 +617,17 @@ def teleport(arbiter, space, data):
     segment = arbiter.shapes[0]
     id_ = segment.portal_id
     link = segment.linked_portal
-    target = portals[link]
+    targ = portals[link]
     if mode != MODE_HEADLESS:
-        print("TELEPORT TO ",target)
+        print("TELEPORT TO ",targ)
 
     n1 = segment.normal
-    n2 = target.normal
+    n2 = targ.normal
     #th = n1.get_angle_between(n2)
-    #th = (segment.b-segment.a).get_angle_between(target.b-target.a)
+    #th = (segment.b-segment.a).get_angle_between(targ.b-targ.a)
     # FIXME what about moving portals?
     # FIXME balls can end up in the wall and crash the engine
-    th = segment.portal_angle - target.portal_angle + math.pi
+    th = segment.portal_angle - targ.portal_angle + math.pi
     if mode != MODE_HEADLESS:
         print("ROTATE BY" , numpy.rad2deg(th))
     ball.velocity = ball.velocity.rotated(-th)
@@ -633,7 +636,7 @@ def teleport(arbiter, space, data):
     center1 = (segment.a + segment.b) / 2.0
     relative = ball.position - center1
     relative = relative.rotated(-th)
-    center2 = (target.a + target.b) / 2.0
+    center2 = (targ.a + targ.b) / 2.0
     ball.position = center2 + relative
 
     # normalize target portal orientation and move 3 ball width away from the portal
@@ -937,17 +940,28 @@ while simulating:
             stationary = 0
 
         if dead or stuck or stationary > 100 or ball.position.y < 0 or ball.position.y > top or cycle > 2000:
-            dist = sys.float_info.max-1
+            dist = tdist = sys.float_info.max-1
             if stationary > 100 or stuck:
                 # TODO: improve "proximity" function for the hole, sometimes the shot that is closest to the hole is not the smartest choice.
-                dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
-                #dist = (stopx-ball.position.x)*3 - ball.position.y # as right as possible, then low
-                #dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
-                #dist = -ball.position.x-ball.position.y # as high as possible, then right/left
-                #dist = -ball.position.x+ball.position.y*4 # as low as possible, then right/left
+                dist = 0
+                tdist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
+                if target == 'distance':
+                  dist = tdist
+                elif target == 'right':
+                  dist = (stopx-ball.position.x)*3 - ball.position.y # as right as possible, then low
+                elif target == 'left':
+                  dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
+                elif target == 'high' or target =='topright' or target =='upperleft':
+                  dist = -ball.position.x-ball.position.y # as high as possible, then right
+                elif target == 'topleft' or target =='upperleft':
+                  dist = ball.position.x-ball.position.y # as high as possible, then left
+                elif target == 'low' or target == 'lowerright' or target=='bottomright':
+                  dist = -ball.position.x+ball.position.y*4 # as low as possible, then right
+                elif target == 'lowerleft' or target=='bottomleft':
+                  dist = ball.position.x+ball.position.y*4 # as low as possible, then right
                 dist = dist + cycle  # include speed in the result
 
-            if dist < 8.2:
+            if tdist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
 
             running = False
