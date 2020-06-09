@@ -940,12 +940,12 @@ while simulating:
             dist = sys.float_info.max-1
             if stationary > 100 or stuck:
                 # TODO: improve "proximity" function for the hole, sometimes the shot that is closest to the hole is not the smartest choice.
-                #dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
+                dist = distance(ball.position.x, stopx, ball.position.y, stopy) # distance
                 #dist = (stopx-ball.position.x)*3 - ball.position.y # as right as possible, then low
                 #dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
-                #dist = -ball.position.x-ball.position.y # as high as possible, then right
-                dist = ball.position.x+ball.position.y*4 # as low as possible, then right
-                #dist = dist + cycle  # include speed in the result
+                #dist = -ball.position.x-ball.position.y # as high as possible, then right/left
+                #dist = -ball.position.x+ball.position.y*4 # as low as possible, then right/left
+                dist = dist + cycle  # include speed in the result
 
             if dist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
