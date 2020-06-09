@@ -610,6 +610,9 @@ def magoff(arbiter, space, data):
     return True
 
 def teleport(arbiter, space, data):
+    #disable until this is fixed
+    #return die(arbiter, space, data)
+
     global teleporting
     if teleporting:
         return False
@@ -619,7 +622,7 @@ def teleport(arbiter, space, data):
     link = segment.linked_portal
     targ = portals[link]
     if mode != MODE_HEADLESS:
-        print("TELEPORT TO ",targ)
+        print("TELEPORT TO ",(targ.a+targ.b)/2)
 
     n1 = segment.normal
     n2 = targ.normal
@@ -630,18 +633,37 @@ def teleport(arbiter, space, data):
     th = segment.portal_angle - targ.portal_angle + math.pi
     if mode != MODE_HEADLESS:
         print("ROTATE BY" , numpy.rad2deg(th))
+        print("VELOCITY BEFORE" , ball.velocity)
     ball.velocity = ball.velocity.rotated(-th)
+    if mode != MODE_HEADLESS:
+        print("VELOCITY AFTER" , ball.velocity)
 
     # rotation - normalize origin portal orientation and identify relative position
-    center1 = (segment.a + segment.b) / 2.0
+    if mode != MODE_HEADLESS:
+        print("POSITION" , ball.position)
+        print("POSITION A" , segment.a + segment.body.position)
+        print("POSITION B" , segment.b + segment.body.position)
+    center1 = (segment.a + segment.b) / 2.0 + segment.body.position
     relative = ball.position - center1
+    if mode != MODE_HEADLESS:
+        print("OFFSET BEFORE ROTATION" , relative)
     relative = relative.rotated(-th)
-    center2 = (targ.a + targ.b) / 2.0
+    if mode != MODE_HEADLESS:
+        print("OFFSET AFTER ROTATION" , relative)
+    center2 = (targ.a + targ.b) / 2.0 + targ.body.position
+    if mode != MODE_HEADLESS:
+        print("POSITION BEFORE ROTATION" , ball.position)
     ball.position = center2 + relative
+    if mode != MODE_HEADLESS:
+        print("POSITION AFTER ROTATION" , ball.position)
 
     # normalize target portal orientation and move 3 ball width away from the portal
     teleporting = True
-    ball.position = ball.position - n2 * BALL_RADIUS * 5 
+    if mode != MODE_HEADLESS:
+        print("POSITION BEFORE TRANSLATION" , ball.position)
+    ball.position = ball.position - n2 * BALL_RADIUS * 3 
+    if mode != MODE_HEADLESS:
+        print("POSITION AFTER TRANSLATION" , ball.position)
     space.step(0.0001)
     return True
 
@@ -871,8 +893,11 @@ while simulating:
         if timeout is not False and now>timeout:
             vy = POWER * math.sin(numpy.deg2rad(ANGLE))
             vx = POWER * math.cos(numpy.deg2rad(ANGLE))
+            ball.position = (startx, starty+5)
             ball.velocity = (vx, vy)
             timeout = False
+        elif timeout is not False:
+            ball.position = (startx, starty+5)
 
         if not mode == MODE_HEADLESS:
             for event in pygame.event.get():
@@ -951,7 +976,7 @@ while simulating:
                   dist = (stopx-ball.position.x)*3 - ball.position.y # as right as possible, then low
                 elif target == 'left':
                   dist = -(stopx-ball.position.x)*3 + ball.position.y # as left as possible, then low
-                elif target == 'high' or target =='topright' or target =='upperleft':
+                elif target == 'high' or target =='topright' or target =='upperleft' or target=='top':
                   dist = -ball.position.x-ball.position.y # as high as possible, then right
                 elif target == 'topleft' or target =='upperleft':
                   dist = ball.position.x-ball.position.y # as high as possible, then left
@@ -959,6 +984,8 @@ while simulating:
                   dist = -ball.position.x+ball.position.y*4 # as low as possible, then right
                 elif target == 'lowerleft' or target=='bottomleft':
                   dist = ball.position.x+ball.position.y*4 # as low as possible, then right
+                elif target == 'speed':
+                  dist = 0
                 dist = dist + cycle  # include speed in the result
 
             if tdist < 8.2:
