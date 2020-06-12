@@ -60,14 +60,15 @@ SUBMODE_TUNNEL = 5
 
 #VARIABLES WE NEED TO EYEBALL
 
-TERRAIN_ELASTICITY = 0.55
+TERRAIN_ELASTICITY = 0.6
+SIDEWALL_ELASTICITY = 0.6
 TERRAIN_FRICTION = 0.5
 SEGMENT_THICKNESS = 2
 
 BALL_MASS = 1.0
-BALL_MOMENT = 10
+BALL_MOMENT = 13.5
 BALL_RADIUS = 5.0
-BALL_ELASTICITY = 0.65
+BALL_ELASTICITY = 0.6
 BALL_FRICTION = 0.7
 
 # distance the ball has to travel before switching status (tunnel, sticky, ghost)
@@ -226,13 +227,13 @@ body.reset_position = body.position
 bodies['bbox']=body
 #left wall
 segment = pymunk.Segment(body, bbox[0], bbox[1], SEGMENT_THICKNESS)
-segment.elasticity = TERRAIN_ELASTICITY
+segment.elasticity = SIDEWALL_ELASTICITY
 segment.friction = TERRAIN_FRICTION
 segment.color=(150,40,40)
 space.add(segment)
 #right wall
 segment = pymunk.Segment(body, bbox[2], bbox[3], SEGMENT_THICKNESS)
-segment.elasticity = TERRAIN_ELASTICITY
+segment.elasticity = SIDEWALL_ELASTICITY
 segment.friction = TERRAIN_FRICTION
 segment.color=(150,40,40)
 space.add(segment)
@@ -698,7 +699,7 @@ def check_wall_type(arbiter, space, data):
         except:
             pass #ignore moving sticky/acid
     sticky = stickies.get(id_)
-    if sticky:
+    if sticky and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
         imgxy = (int(round(point[0]-sticky['pos'][0]-bodyxy[0])), 
                  int(round(window[1]-point[1]-sticky['pos'][1]+bodyxy[1])))
         try:
@@ -1026,7 +1027,8 @@ while simulating:
             stationary = 0
 
         # adjust ball speed for next cycle
-        ball.angular_velocity = 0 
+        #ball.angular_velocity = 0 
+        ball.angular_velocity = ball.angular_velocity / 1.1
         ball.velocity += (accx, accy)
 
         # calculate magnet activity
