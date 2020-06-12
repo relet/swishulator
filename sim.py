@@ -990,7 +990,8 @@ while simulating:
                   dist = ball.position.x+ball.position.y*4 # as low as possible, then right
                 elif target == 'speed':
                   dist = 0
-                dist = dist + cycle  # include speed in the result
+                if not target == "swish":
+                  dist = dist + cycle  # include speed in the result
 
             if tdist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
@@ -1060,7 +1061,12 @@ while simulating:
           path, course, level_id, ext = re.split('[/._]', levelfile)
           besties[course] = besties.get(course, {})
           besties[course][int(level_id)] = besties.get(course).get(int(level_id),{})
-          besties[course][int(level_id)][best[1]] = best[0]
+
+          key = best[1]
+          if args.powerup != 'regular':
+              key = args.powerup+","+str(best[1])
+
+          besties[course][int(level_id)][key] = best[0]
 
           fd = open("results.json","w")
           json.dump(besties, fd)
