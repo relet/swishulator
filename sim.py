@@ -99,7 +99,7 @@ parser.add_argument('-m', '--mode', type=str, help='simulation mode [headless, s
 parser.add_argument('-n', '--newton', type=float, help='ball power (NoodleNewton)', nargs='?', default=None)
 parser.add_argument('-p', '--power', type=int, help='ball power (P1-13)', nargs='?', default=13)
 parser.add_argument('-u', '--powerup', type=str, help='powerup selection [regular, heavy, shield, antigrav, sticky, tunnel, super]', nargs='?', default='regular')
-parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=5.0)
+parser.add_argument('-s', '--spread', type=float, help='spread range to simulate in spread mode', nargs='?', default=3.5)
 parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
 parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=3.05)
 parser.add_argument('-t', '--target', type=str, help='optimization target (distance, high, low, left, right)', nargs='?', default='distance')
@@ -837,7 +837,8 @@ simulating = True
 
 tests = 0
 
-SPREAD_STEPS = 5.0
+SPREAD_STEPS = int(spread/0.1)
+print("Spread displayed in {} steps of {}.".format(SPREAD_STEPS, (spread/SPREAD_STEPS)))
 repeat = 0
 
 font = pygame.font.Font('freesansbold.ttf', 64)
@@ -855,7 +856,11 @@ while simulating:
     tunnelxy = Vec2d(0,0)
 
     if mode == MODE_SPREAD:
-        ANGLE = angle - (spread/2.0) + (spread / (SPREAD_STEPS-1)) * repeat
+        if repeat==SPREAD_STEPS:
+            ANGLE = init_angle
+        else:
+            ANGLE = angle - (spread/2.0)
+        print ("Spread step {}, angle {}.".format(repeat, ANGLE))
 
     if mode == MODE_HEADLESS:
         if (ANGLE*10 % 50) == 0:
@@ -910,7 +915,15 @@ while simulating:
             screen.blit(text1, (50, 300))
             screen.blit(text2, (50, 360))
             screen.blit(text3, (50, 420))
-            
+        if mode == MODE_SPREAD:
+            xy = (int(ball.position.x), int(window[1]-ball.position.y))
+            red = (255,80,80)
+            green = (80,255,80)
+            if repeat==SPREAD_STEPS:
+                red = green
+            pygame.draw.circle(bg, red, xy, int(BALL_RADIUS/2))
+            #bg.set_at(xy, red)
+
         if cycle % 5 == 0:
             if mode == MODE_SIM or mode == MODE_SPREAD:
                 screen.blit(bg,(0,0))
@@ -969,7 +982,7 @@ while simulating:
             stationary = 0
 
         if dead or stuck or stationary > 100 or ball.position.y < 0 or ball.position.y > top or cycle > 2000:
-            dist = tdist = sys.float_info.max-1
+            dist = tdist = 1e8 #sys.float_info.max-1 fails for sliding window calculation
             if stationary > 100 or stuck:
                 # TODO: improve "proximity" function for the hole, sometimes the shot that is closest to the hole is not the smartest choice.
                 dist = 0
@@ -1002,7 +1015,7 @@ while simulating:
             if mode == MODE_SPREAD:
                 bg = screen.copy()
                 repeat += 1
-                if repeat == SPREAD_STEPS:
+                if repeat == SPREAD_STEPS+1:
                     simulating = False
 
             results[round(ANGLE*10)] = dist
@@ -1077,26 +1090,28 @@ while simulating:
 
 if mode == MODE_HEADLESS:
     print("Calculating spread")
-    for spread in range(1, 36):
+    best35 = None
+    for spread in range(35, 360):
        sum_ = 0
 
        init = int(init_angle * 10)
-       for a in range(init, init + spread*10):
+       for a in range(init, init + spread):
            sum_ += results[a]
 
        bestsum = sum_
-       besta   = init_angle
+       besta   = init
 
-       for r in range(spread * 10, 1700):
-           sum_ = sum_ + results.get(init + r, 99999)
-           sum_ = sum_ - results.get(init - spread * 10 + r, 99999)
+       for r in range(spread, 1700):
+           sum_ = sum_ + results.get(int(init + r), 99999)
+           sum_ = sum_ - results.get(int(init + r - spread), 99999)
 
            if sum_ < bestsum:
                bestsum = sum_
-               besta = float(init - spread*10 + r) / 10.0
+               besta = float(init + r - spread/2.0)/10.0
        
-       print ("Spread ", spread, " - BEST ANGLE ", float(besta) + float(spread)/2.0)
-
+       if best35 is None:
+           best35 = besta
+       print ("Spread ", spread/10.0, " - BEST ANGLE ", besta)
 
 if mode == MODE_SHOW or mode == MODE_SPREAD:
     while True:
@@ -1106,7 +1121,8 @@ pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS and best:
-    rerun = "{} -m show -a {} -n {} -u {} -z {} -d {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, WAIT, args.level[0])
+    #rerun = "{} -m show -a {} -n {} -u {} -z {} -d {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, WAIT, args.level[0])
+    rerun = "{} -m spread -a {} -s 3.5 -n {} -u {} -z {} -d {} {}".format(sys.argv[0], best35, power, args.powerup, SCALE, WAIT, args.level[0])
     print(rerun)
     os.system(rerun)
 
