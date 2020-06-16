@@ -1024,25 +1024,29 @@ while simulating:
                 if repeat == SPREAD_STEPS+1:
                     simulating = False
 
-            results[round(ANGLE*10)] = dist
-
             if not dead and ((bestdistance is None) or (dist < bestdistance)):
                 reason = "No reason"
                 if dead:
                     reason = "Dead"
+                    dist = 1e16
                 elif stuck:
                     reason = "Stuck"
                 elif stationary > 100:
                     reason = "Stationary"
                 elif ball.position.y < 0:
                     reason = "Exit bottom"
+                    dist = 1e16
                 elif ball.position.y > top:
                     reason = "Exit top"
+                    dist = 1e16
                 elif cycle > 10000:
                     reason = "Timeout"
-                print("Better", angle, dist, bestdistance, reason)
-                bestdistance = dist
-                best = (ANGLE, power)
+                if dist<1e10:
+                  print("Better", angle, dist, bestdistance, reason)
+                  bestdistance = dist
+                  best = (ANGLE, power)
+
+            results[round(ANGLE*10)] = dist
 
             stationary = 0
 
@@ -1072,7 +1076,6 @@ while simulating:
 
 
 if mode == MODE_HEADLESS:
-    print("Calculating spread")
     best35 = None
     for spread in range(35, 360):
        sum_ = 0
@@ -1095,6 +1098,7 @@ if mode == MODE_HEADLESS:
        if best35 is None:
          best35 = besta
            
+         fd = None
          try:
            # writing results to JSON dump, only for levels in the correct format
            fd = open("results.json","r")
@@ -1113,10 +1117,11 @@ if mode == MODE_HEADLESS:
            besties[course][int(level_id)][key] = best35
 
            fd = open("results.json","w")
-           json.dump(besties, fd, indent=2, sort_keys=True)
+           json.dump(besties, fd, indent=2)
            fd.close()
          except Exception as x:
            print(x)
+           fd.close()
            sys.exit(1)
 
        print ("Spread ", spread/10.0, " - BEST ANGLE ", besta)
