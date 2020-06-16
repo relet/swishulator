@@ -86,7 +86,7 @@ screen_center = (0,2500)
 
 # defaults(some are overridden in argparse below) 
 power = 41.1
-init_angle = 1
+init_angle = 0
 mode = MODE_HEADLESS
 submode = SUBMODE_NORMAL
 
@@ -836,14 +836,19 @@ bestdistance = None
 simulating = True
 
 tests = 0
-
-SPREAD_STEPS = int(spread/0.1)
-print("Spread displayed in {} steps of {}.".format(SPREAD_STEPS, (spread/SPREAD_STEPS)))
 repeat = 0
+
+if mode==MODE_SPREAD:
+  SPREAD_STEPS = int(spread/0.1)
+  print("Spread displayed in {} steps of {}.".format(SPREAD_STEPS, (spread/SPREAD_STEPS)))
 
 font = pygame.font.Font('freesansbold.ttf', 64)
 text1 = font.render("{}".format(args.level[0]), True, (255, 255, 255), (0,0,0))
-text2 = font.render("{} degrees".format(args.angle), True, (255, 255, 255), (0,0,0))
+t2 = "{}".format(args.angle)
+if mode==MODE_SPREAD:
+    t2 += "±{}".format(spread/2.0)
+t2 += " degrees"
+text2 = font.render(t2, True, (255, 255, 255), (0,0,0))
 text3 = font.render("{:.1f}NN {}".format(power, args.powerup), True, (255, 255, 255), (0,0,0))
 
 while simulating:
@@ -1005,6 +1010,7 @@ while simulating:
                   dist = 0
                 if not target == "swish":
                   dist = dist + cycle  # include speed in the result
+                dist = dist * dist
 
             if tdist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
@@ -1064,29 +1070,6 @@ while simulating:
         simulating=False
         print ("BEST ANGLE: ", best)
 
-        try:
-          # writing results to JSON dump, only for levels in the correct format
-          fd = open("results.json","r")
-          besties = json.load(fd)
-          fd.close()
-  
-          levelfile = args.level[0]
-          path, course, level_id, ext = re.split('[/._]', levelfile)
-          besties[course] = besties.get(course, {})
-          besties[course][int(level_id)] = besties.get(course).get(int(level_id),{})
-
-          key = best[1]
-          if args.powerup != 'regular':
-              key = args.powerup+","+str(best[1])
-
-          besties[course][int(level_id)][key] = best[0]
-
-          fd = open("results.json","w")
-          json.dump(besties, fd)
-          fd.close()
-        except Exception as x:
-          print(x)
-          sys.exit(1)
 
 if mode == MODE_HEADLESS:
     print("Calculating spread")
@@ -1110,7 +1093,32 @@ if mode == MODE_HEADLESS:
                besta = float(init + r - spread/2.0)/10.0
        
        if best35 is None:
-           best35 = besta
+         best35 = besta
+           
+         try:
+           # writing results to JSON dump, only for levels in the correct format
+           fd = open("results.json","r")
+           besties = json.load(fd)
+           fd.close()
+  
+           levelfile = args.level[0]
+           path, course, level_id, ext = re.split('[/._]', levelfile)
+           besties[course] = besties.get(course, {})
+           besties[course][int(level_id)] = besties.get(course).get(int(level_id),{})
+
+           key = power
+           if args.powerup != 'regular':
+               key = args.powerup+","+str(power)
+
+           besties[course][int(level_id)][key] = best35
+
+           fd = open("results.json","w")
+           json.dump(besties, fd, indent=2, sort_keys=True)
+           fd.close()
+         except Exception as x:
+           print(x)
+           sys.exit(1)
+
        print ("Spread ", spread/10.0, " - BEST ANGLE ", besta)
 
 if mode == MODE_SHOW or mode == MODE_SPREAD:
