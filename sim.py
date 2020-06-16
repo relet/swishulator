@@ -1033,14 +1033,17 @@ while simulating:
                 reason = "No reason"
                 if dead:
                     reason = "Dead"
+                    dist = 1e16
                 elif stuck:
                     reason = "Stuck"
                 elif stationary > 100:
                     reason = "Stationary"
                 elif ball.position.y < 0:
                     reason = "Exit bottom"
+                    dist = 1e16
                 elif ball.position.y > top:
                     reason = "Exit top"
+                    dist = 1e16
                 elif cycle > 10000:
                     reason = "Timeout"
                 if dist<1e10:
@@ -1110,13 +1113,13 @@ if mode == MODE_HEADLESS:
            levelfile = args.level[0]
            path, course, level_id, ext = re.split('[/._]', levelfile)
            besties[course] = besties.get(course, {})
-           besties[course][int(level_id)] = besties.get(course).get(int(level_id),{})
+           besties[course][str(level_id)] = besties.get(course).get(str(level_id),{})
 
-           key = power
+           key = str(power)
            if args.powerup != 'regular':
                key = args.powerup+","+str(power)
 
-           besties[course][int(level_id)][key] = best35
+           besties[course][str(level_id)][key] = best35
 
            fd = open("results.json","w")
            json.dump(besties, fd, indent=2)
