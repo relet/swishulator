@@ -837,6 +837,7 @@ simulating = True
 
 tests = 0
 repeat = 0
+repeat_dead = 0
 
 if mode==MODE_SPREAD:
   SPREAD_STEPS = int(spread/0.1)
@@ -1010,7 +1011,11 @@ while simulating:
                   dist = 0
                 if not target == "swish":
                   dist = dist + cycle  # include speed in the result
-                dist = dist * dist
+            elif mode==MODE_SPREAD:
+                repeat_dead += 1
+                print ("DEAD COUNTER ", repeat_dead)
+
+            dist = dist * dist
 
             if tdist < 8.2:
                 print ("SWISH: ", int(ANGLE*10)/10.0, " - Distance ", dist)
@@ -1028,17 +1033,14 @@ while simulating:
                 reason = "No reason"
                 if dead:
                     reason = "Dead"
-                    dist = 1e16
                 elif stuck:
                     reason = "Stuck"
                 elif stationary > 100:
                     reason = "Stationary"
                 elif ball.position.y < 0:
                     reason = "Exit bottom"
-                    dist = 1e16
                 elif ball.position.y > top:
                     reason = "Exit top"
-                    dist = 1e16
                 elif cycle > 10000:
                     reason = "Timeout"
                 if dist<1e10:
@@ -1126,6 +1128,10 @@ if mode == MODE_HEADLESS:
 
        print ("Spread ", spread/10.0, " - BEST ANGLE ", besta)
 
+if mode == MODE_SPREAD:
+    success = SPREAD_STEPS - repeat_dead
+    rate = float(success)/SPREAD_STEPS
+    print ("Success rate: {:.2f}% - {}/{}".format(rate,success,SPREAD_STEPS))
 if mode == MODE_SHOW or mode == MODE_SPREAD:
     while True:
         time.sleep(1.0)
