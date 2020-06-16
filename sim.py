@@ -1134,7 +1134,7 @@ if mode == MODE_HEADLESS:
 if mode == MODE_SPREAD:
     success = SPREAD_STEPS - repeat_dead
     rate = float(success)/SPREAD_STEPS
-    print ("Success rate: {:.2f}% - {}/{}".format(rate,success,SPREAD_STEPS))
+    print ("Success rate: {:.2f}% - {}/{}".format(rate*100,success,SPREAD_STEPS))
 if mode == MODE_SHOW or mode == MODE_SPREAD:
     while True:
         time.sleep(1.0)
