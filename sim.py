@@ -81,8 +81,6 @@ TIME_FACTOR = 0.3333
 
 window = (3200,4800)
 WIDTH,HEIGHT = window
-screen_center = (0,2500)
-#screen_center = (0,3000)
 
 # defaults(some are overridden in argparse below) 
 power = 41.1
@@ -103,7 +101,13 @@ parser.add_argument('-s', '--spread', type=float, help='spread range to simulate
 parser.add_argument('-z', '--zoom', type=float, help='change the zoom factor if your screen is too large/small', nargs='?', default=1.0)
 parser.add_argument('-d', '--delay', type=float, help='wait d seconds until taking your shot', nargs='?', default=3.05)
 parser.add_argument('-t', '--target', type=str, help='optimization target (distance, high, low, left, right)', nargs='?', default='distance')
+parser.add_argument('-v', '--vertical', type=int, help='shift the viewport by this many pixels, vertically', nargs='?', default='0')
+parser.add_argument('--ignore-sticky', dest="ignore_sticky", help='ignore sticky masks', action='store_true')
 args = parser.parse_args()
+
+print(args)
+
+screen_center = (0,2500+args.vertical)
 
 if args.mode:
     if args.mode=="headless":
@@ -370,7 +374,7 @@ for node in nodes:
         masks.append(do_acid)
 
     sticky = node.get('texture-sticky-mask')
-    if sticky:
+    if sticky and not args.ignore_sticky:
         do_sticky = {
                 'id': id_+'_sticky',
                 'type': 'sticky',
@@ -699,7 +703,7 @@ def check_wall_type(arbiter, space, data):
         except:
             pass #ignore moving sticky/acid
     sticky = stickies.get(id_)
-    if sticky and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
+    if sticky and (not args.ignore_sticky) and (abs(ball.position.x - startx)>GHOST_DISTANCE or abs(ball.position.y - starty)>GHOST_DISTANCE):
         imgxy = (int(round(point[0]-sticky['pos'][0]-bodyxy[0])), 
                  int(round(window[1]-point[1]-sticky['pos'][1]+bodyxy[1])))
         try:
@@ -1143,8 +1147,7 @@ pygame.quit()
 
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS and best:
-    #rerun = "{} -m show -a {} -n {} -u {} -z {} -d {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, WAIT, args.level[0])
-    rerun = "{} -m spread -a {} -s 3.5 -n {} -u {} -z {} -d {} {}".format(sys.argv[0], best35, power, args.powerup, SCALE, WAIT, args.level[0])
+    rerun = "{} -m spread -a {} -s 3.5 -n {} -u {} -z {} -v {} -d {} {}".format(sys.argv[0], best35, power, args.powerup, SCALE, args.vertical, WAIT, args.level[0])
     print(rerun)
     os.system(rerun)
 
