@@ -227,6 +227,9 @@ onmessage = function(event) {
       if(!reply['error']) { 
           log("Success.")
 	  return;
+      } else if (reply['error']['authentication']) {
+          log("Email or recovery code unrecognized - authentication failed.")
+	  return;
       }
   } else if (reply['@class']=='.LogEventResponse') {
       if(reply['error']) {
