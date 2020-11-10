@@ -226,6 +226,7 @@ onmessage = function(event) {
   } else if (reply['@class']=='.ChangeUserDetailsResponse') {
       if(!reply['error']) { 
           log("Success.")
+	  return;
       }
   } else if (reply['@class']=='.LogEventResponse') {
       if(reply['error']) {
