@@ -26,8 +26,15 @@ function log(text) {
     document.getElementById("output").appendChild(d)
 }
 
+var sendcount = 0;
+
 function send(socket, arr) {
-    socket.send(JSON.stringify(arr));
+    sendcount++;
+    if (sendcount < 300) {
+        socket.send(JSON.stringify(arr));
+    } else {
+        log("[note] Sent 300 messages, maybe something is looping.");
+    }
 }
 
 onopen = function(e) {
@@ -127,6 +134,7 @@ function friendly3(matchId) {
     return;
 }
 
+var action_performed=0;
 
 onmessage = function(event) {
   reply = JSON.parse(event.data);
@@ -162,13 +170,19 @@ onmessage = function(event) {
 	  return;
       }
   } else if (reply['@class']=='.AuthenticationResponse') {
+      if (action_performed) {
+          log("Action performed. Please reload the page if you want to take another action.");
+          return;
+      }
       action = document.querySelector('input[name="action"]:checked').value;
       if (action=="sell") {
 	  log("Selling all cards.");
 	  sellcards();
+	  action_performed=1;
       } else if (action=="friendly") {
 	  log("Initiating friendly match.");
 	  friendly();
+	  action_performed=1;
       } else if (action=="search") {
 	  search = document.getElementById("team_search").value;
 
@@ -181,6 +195,7 @@ onmessage = function(event) {
 	      "requestId": "TEAM_SEARCH_EVENT",
 	  }
 	  send(socket,outobj);
+	  action_performed=1;
       } else if (action=="rename") {
 	  log("Renaming player.")
 	  displayName = document.getElementById("rename_displayName").value;
@@ -202,6 +217,7 @@ onmessage = function(event) {
 	      outobj['newPassword']=newPassword;
 	  }
 	  send(socket,outobj);
+	  action_performed=1;
       }
       return;
   } else if (reply['@class']=='.ScriptMessage') {
@@ -288,6 +304,10 @@ onerror = function(error) {
 };
 
 connect = function() {
+    if (action_performed) {
+          log("Action performed. Please reload the page if you want to take another action.");
+          return;
+    }
     log("==[websocket client]==");
     socket = new WebSocket("wss://live-f351468gBSWz.ws.gamesparks.net/ws/device/f351468gBSWz");
     socket.onopen = onopen;
