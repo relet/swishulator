@@ -1,0 +1,413 @@
+<html>
+    <head>
+	<meta charset="utf-8">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    </head>
+    <body>
+	<script charset="utf-8">
+
+var socket;
+var onopen;
+var onmessage;
+var onclose;
+var onerror;
+
+var golfers;
+var hats;
+
+var hat_blacklist= [ 2, 6, 9, 16, 20, 22, 23, 26, 34, 35, 37, 39, 41, 43, 44, 58, 61, 62, 78, 79, 105, 106, 110, 133, 147, 148, 149, 162, 170, 175, 183, 188, 192, 193, 195, 196, 197, 202, 203, 204, 205, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 95, 97, 98, 99, 100, 101, 107, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 135, 137, 138, 139, 140, 141, 142, 143, 144, 146, 154, 155, 156, 157, 159, 163, 164, 165, 166, 167, 171, 172, 176, 177, 178, 180, 181, 182, 184, 185, 186, 187, 189, 190, 191, 194, 198, 199, 201, 206, 207 ];
+var golfer_blacklist = [ 48, 60, 61, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 97, 98, 103, 104, 107, 109, 110, 112, 113, 115, 116, 117, 119, 122, 124, 126, 128, 131, 132, 141, 149, 152, 154, 156, 158, 167, 170, 81, 82, 83, 84, 85, 86, 87, 88, 90, 91, 95, 100, 101, 102, 105, 106, 108, 111, 114, 118, 120, 121, 125, 127, 129, 130, 139, 140, 142, 143, 144, 145, 146, 147, 148, 150, 153, 155, 157, 159, 160, 161, 162, 163, 164, 165, 166, 169, 171, 175 ]; 
+
+function log(text) {
+    console.log(text);
+    d = document.createElement("div");
+    t = document.createTextNode(text);
+    d.appendChild(t);
+    document.getElementById("output").appendChild(d)
+}
+
+var sendcount = 0;
+
+function send(socket, arr) {
+    sendcount++;
+    if (sendcount < 300) {
+        socket.send(JSON.stringify(arr));
+    } else {
+        log("[note] Sent 300 messages, maybe something is looping.");
+    }
+}
+
+onopen = function(e) {
+  log("[open] Connection established");
+};
+
+function sellcards() {
+    for (var hat in hats) {
+        count=hats[hat]['count'];
+	log(`Hat ${hat}: ${count}`);
+
+	if (hat_blacklist.includes(parseInt(hat))) {
+	    log("skipping epic/legendary");
+	    continue;
+	} else if (count>1) {
+	    log(`Selling ${count-1}`);
+
+	    outobj = {
+	      "@class": ".LogEventRequest", 
+	      "eventKey": "TRADE_BUY_CARD", 
+	      "CARD_TYPE": "hat", 
+	      "CARD_ID": hat, 
+	      "COUNT": -count+1, 
+	      "requestId": `sell-hat-${hat}`
+	    }
+            send(socket, outobj);
+	}
+
+    }
+    for (var id in golfers) {
+        count=golfers[id]['count'];
+	log(`Golfer ${id}: ${count}`);
+
+	if (golfer_blacklist.includes(parseInt(id))) {
+	    log("skipping epic/legendary");
+	    continue;
+	} else if (count>1) {
+	    log(`Selling ${count-1}`);
+
+	    outobj = {
+	      "@class": ".LogEventRequest", 
+	      "eventKey": "TRADE_BUY_CARD", 
+	      "CARD_TYPE": "golfer", 
+	      "CARD_ID": id, 
+	      "COUNT": -count+1, 
+	      "requestId": `sell-golfer-${id}`
+	    }
+            send(socket, outobj);
+	}
+
+    }
+    return;
+}
+
+function friendly() {
+    outobj = {
+	"@class": ".LogEventRequest",
+        "create": 1,
+        "eventKey": "FRIENDLY_MATCH_JOIN",
+        "match_id": "",
+        "open_to_team": 0,
+        "requestId": "bff_forever"
+    }
+    send(socket, outobj);
+    return;
+}
+function friendly2(matchId) {
+    course  = document.getElementById("friendly_course").value;
+    skill_cap  = document.getElementById("friendly_cap").value;
+    allpu   = document.getElementById("friendly_all_pu").checked;
+    fiendly = document.getElementById("friendly_fiendly").checked;
+
+    log("Applying settings");
+
+    var powerups; 
+    if (allpu) {
+      powerups = {"0":1,"1":2,"2":3,"3":4,"4":5,"5":6,"6":7,"7":8,"8":9,"9":10,"10":11,"11":12,"12":13,"13":14,"14":15,"15":16}
+    } else {
+      powerups = {"0":0, "1":1, "2":2}
+    }
+
+    match_settings = JSON.stringify({
+        "course_name": course,
+        "powerups": powerups,
+        "skill_cap": skill_cap,
+    })
+    outobj = {
+        "@class": ".LogEventRequest",
+        "eventKey": "FRIENDLY_MATCH_CHANGE_SETTINGS",
+        "match_id": matchId,
+        "match_settings": JSON.stringify(match_settings),
+        "requestId": "FRIENDLY_MATCH_CHANGE_SETTINGS"
+    }
+    send(socket, outobj);
+}
+function friendly3(matchId) {
+    return;
+}
+
+var action_performed=0;
+var login_name=null;
+var login_team_id=null;
+var login_team_name=null;
+
+var TEAM_GOT="5cf89aad5a026804ec84f2db";
+var TEAM_RUDEL="5dc3362f56f78904ef55e174";
+
+onmessage = function(event) {
+  reply = JSON.parse(event.data);
+  if (reply['@class']=='.AuthenticatedConnectResponse') {
+      if (reply['connectUrl']) {
+	  log("[open] connected to server");
+	  socket = new WebSocket(reply['connectUrl']);
+	  socket.onopen = onopen;
+	  socket.onmessage = onmessage;
+	  socket.onclose = onclose;
+	  return;
+      } else if (reply['nonce']) {
+	  hmac = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(reply['nonce'], 'a3insvuyMEertN6BV14ys1K05qcfaaoN'));
+
+	  outobj = {
+	      "@class": ".AuthenticatedConnectRequest",
+	      "hmac": hmac,
+	      "os": "The Internet",
+	  }
+	  send(socket, outobj);
+	  return;
+      } else if (reply['sessionId']) {
+	  user = document.getElementById("email").value;
+	  pass = document.getElementById("password").value;
+	  outobj = {
+	      "@class": ".AuthenticationRequest", 
+	      "userName": user, 
+	      "password": pass, 
+	      "scriptData": { "game_version": 9999, "client_version": 99999}, 
+	      "requestId": "hello"
+	  } 
+	  send(socket,outobj);
+	  return;
+      }
+  } else if (reply['@class']=='.AuthenticationResponse') {
+      if (action_performed) {
+          log("Action performed. Please reload the page if you want to take another action.");
+          return;
+      }
+      if (reply['error']) {
+          log("[login] Login failed.");
+          log(JSON.stringify(reply['error']));
+          return;
+      }
+      action = document.querySelector('input[name="action"]:checked').value;
+      if (action=="sell") {
+	  log("Selling all cards.");
+	  sellcards();
+	  action_performed=1;
+      } else if (action=="friendly") {
+	  log("Initiating friendly match.");
+	  friendly();
+	  action_performed=1;
+      } else if (action=="search") {
+	  search = document.getElementById("team_search").value;
+
+	  outobj = {
+	      "@class": ".LogEventRequest",
+	      "eventKey": "TEAM_SEARCH_EVENT",
+	      "NAME": search,
+	      "COUNTRY": "UN",
+	      "REQUIRED_TROPHIES": 0,
+	      "requestId": "TEAM_SEARCH_EVENT",
+	  }
+	  send(socket,outobj);
+	  action_performed=1;
+      } else if (action=="ungot") {
+	  if (!login_name) {
+	      log("Login failed. Not renaming");
+	      return;
+	  }
+	  if (!login_name.includes('🐺')) {
+	      log("Wolf not found. Not renaming");
+	      return;
+	  }
+	  displayName=login_name.split('🐺')[0].replace(/~+$/,'');
+	  outobj = {
+	    "@class": ".ChangeUserDetailsRequest",
+	    "language": "en",
+	    "requestId": "rename"
+	  }
+	  outobj['displayName']=displayName;
+	  send(socket,outobj);
+	  action_performed=1;
+      } else if (action=="got") {
+	  if (!login_name) {
+	      log("Login failed. Not renaming");
+	      return;
+	  }
+	  if (!login_team_id) {
+	      log("No team. Not renaming");
+	      return;
+	  }
+	  if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL)) {
+	      log("Not a member of GOT or Golfsrudel. Not renaming.");
+	      return;
+	  }
+	  if (login_name.includes('🐺')) {
+	      log("There already is a wolf in your name. Not renaming.");
+	      return;
+	  }
+	  if (login_name.length>13) {
+	      log("Your name is too long to add an emoji. Sorry lorry.");
+	      return;
+	  }
+	  if (login_name.length==13) {
+	      log("Adding just the wolf. Maximum name length 15.");
+	      displayName=login_name+"🐺";
+	  }
+	  else if (login_name.length==12) {
+	      log("Adding just the wolf and a space. Maximum name length 15.");
+	      displayName=login_name+" 🐺";
+	  }
+	  else if (login_name.length==11) {
+	      log("Adding just the emojis. Maximum name length 15.");
+	      displayName=login_name+"🐺⚔️";
+	  }
+	  else {
+	      log("Adding the emojis and a space adding five characters to a maximum length of 15");
+	      displayName=login_name+" 🐺⚔️";
+	  }
+	  outobj = {
+	    "@class": ".ChangeUserDetailsRequest",
+	    "language": "en",
+	    "requestId": "rename"
+	  }
+	  outobj['displayName']=displayName;
+	  send(socket,outobj);
+	  action_performed=1;
+      } else if (action=="rename") {
+	  log("Renaming player.")
+	  displayName = document.getElementById("rename_displayName").value;
+	  userName = document.getElementById("rename_userName").value;
+	  newPassword = document.getElementById("rename_password").value;
+
+	  outobj = {
+	    "@class": ".ChangeUserDetailsRequest",
+	    "language": "en",
+	    "requestId": "rename"
+	  }
+	  if (displayName) {
+	      outobj['displayName']=displayName;
+	  }
+	  if (userName) {
+	      outobj['userName']=userName;
+	  }
+	  if (newPassword) {
+	      outobj['newPassword']=newPassword;
+	  }
+	  send(socket,outobj);
+	  action_performed=1;
+      }
+      return;
+  } else if (reply['@class']=='.ScriptMessage') {
+      if (reply['extCode']=='PLAYER_DATA_UPDATE') {
+          login_name = reply['data']['displayName'];
+	  login_team_id = reply['data']['team_id'];
+	  login_team_name = reply['data']['team_name'];
+
+	  log(`Logged in as: ${login_name}`);
+	  log(`Team is: ${login_team_name}`);
+
+	  log(`User ID: ${reply['data']['userId']}`);
+
+	  golfers = reply['data']['scriptData']['data']['golfers']
+	  hats = reply['data']['scriptData']['data']['hats']
+
+	  return;
+      } else if (reply['extCode']=='UPDATE_DEALS') {
+	  deals = reply['data']['global_deals'];
+	  return;
+      } else if (reply['extCode']=='CHALLENGE_EVENT_DATA') {
+	  return;
+      } else if (reply['extCode']=='FRIENDLY_MATCH_DATA_CHANGED') {
+          matchId=reply['data']['match_id'];
+	  friendly3(matchId);
+	  return;
+      }
+  } else if (reply['@class']=='.ChangeUserDetailsResponse') {
+      if(!reply['error']) { 
+          log("Success.")
+	  return;
+      } else if (reply['error']['authentication']) {
+          log("Email or recovery code unrecognized - authentication failed.")
+	  return;
+      }
+  } else if (reply['@class']=='.LogEventResponse') {
+      if(reply['error']) {
+	  for (key in reply['error']) {
+	      log(`[ERROR] ${reply['requestId']} === ${key}: ${JSON.stringify(reply['error'][key])}`);
+	  }
+	  return;
+      } else if(reply['requestId']=='bff_forever') {
+          matchId=reply['scriptData']['match_id'];
+	  friendly2(matchId);
+	  return;
+      } else if(reply['requestId']=='FRIENDLY_MATCH_CHANGE_SETTINGS') {
+          return;
+      } else if(reply['requestId']=='TEAM_SEARCH_EVENT') {
+          data = reply['scriptData'];
+          teams = data['teams'];
+	  teams.forEach((team)=>{
+              teamId = team['teamId'];
+
+	      outobj = {
+                  "@class": ".LogEventRequest",
+                  "eventKey": "GET_TEAM_REQUEST",
+                  "team_id": teamId,
+                  "requestId": `team-${teamId}`,
+              }
+              send(socket,outobj);
+	  });
+	  return;
+      } else if(reply['requestId'].startsWith('team-')) {
+          data = reply['scriptData'];
+          log("=================================================");
+          log(`${data["teamId"]} -- ${data["teamName"]} -- ${data["teamcurrenttrophies"]}`);
+          log(`${data["desc"]}`);
+          log("=================================================");
+	  members = data['members'];
+	  members.forEach((mem)=>{
+	      log(`${mem['id']} -- ${mem['displayName']} -- ${mem['scriptData']['data']['trophies']}`);
+	  });
+	  return;
+      }
+  }
+  //if we haven't returned yet, dump the message
+  log(`[message] (otherwise unhandled) data received from server: ${JSON.stringify(reply, undefined, 4)}`);
+};
+
+onclose = function(event) {
+  if (event.wasClean) {
+    log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+  } else {
+    log('[close] Connection died');
+  }
+};
+
+onerror = function(error) {
+  log(`[error] ${error.message}`);
+};
+
+connect = function() {
+    if (action_performed) {
+          log("Action performed. Please reload the page if you want to take another action.");
+          return;
+    }
+    log("==[websocket client]==");
+    socket = new WebSocket("wss://live-f351468gBSWz.ws.gamesparks.net/ws/device/f351468gBSWz");
+    socket.onopen = onopen;
+    socket.onmessage = onmessage;
+    socket.onclose = onclose;
+}
+
+        </script>
+
+	Email: <input type="text" id="email">
+	Password: <input type="text" id="password">
+	<p>
+ 	Action: <br/>
+	    <input type="radio" name="action" value="none" checked="checked"> nothing (just log in).<br/>
+	    <input type="radio" name="action" value="got"> Emoji hinzufügen.<br/>
+	    <input type="radio" name="action" value="ungot"> Emoji entfernen.<br/>
+	</p>
+  	<input type="submit" onClick="connect()" value="Connect">
+        <hr/>
+	<p id='output'>
+	</pre>
+    </body>
+</html>
