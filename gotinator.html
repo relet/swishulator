@@ -297,8 +297,8 @@ onmessage = function(event) {
   } else if (reply['@class']=='.ScriptMessage') {
       if (reply['extCode']=='PLAYER_DATA_UPDATE') {
           login_name = reply['data']['displayName'];
-	  login_team_id = reply['data']['team_id'];
-	  login_team_name = reply['data']['team_name'];
+	  login_team_id = reply['data']['scriptData']['data']['team_id'];
+	  login_team_name = reply['data']['scriptData']['data']['team_name'];
 
 	  log(`Logged in as: ${login_name}`);
 	  log(`Team is: ${login_team_name}`);
