@@ -27,6 +27,12 @@ function log(text) {
 }
 
 var sendcount = 0;
+var login_name=null;
+var login_team_id=null;
+var login_team_name=null;
+
+var TEAM_GOT="5cf89aad5a026804ec84f2db";
+var TEAM_RUDEL="5dc3362f56f78904ef55e174";
 
 function send(socket, arr) {
     sendcount++;
@@ -181,54 +187,66 @@ onmessage = function(event) {
       }
       action = document.querySelector('input[name="action"]:checked').value;
       if (action=="sell") {
-	  log("Selling all cards.");
-	  sellcards();
-	  action_performed=1;
-      } else if (action=="friendly") {
-	  log("Initiating friendly match.");
-	  friendly();
-	  action_performed=1;
-      } else if (action=="search") {
-	  search = document.getElementById("team_search").value;
 
-	  outobj = {
+		if (!login_team_id) {
+	      log("No team. Not renaming");
+	      return;
+	    }
+	    if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL)) {
+	      log("Not a member of GOT or Golfsrudel. Not renaming.");
+		  return;
+	    }
+	
+	    log("Selling all cards.");
+	    sellcards();
+	    action_performed=1;
+      } else if (action=="friendly") {
+	    log("Initiating friendly match.");
+	    friendly();
+	    action_performed=1;
+      } else if (action=="search") {
+	    search = document.getElementById("team_search").value;
+
+	    outobj = {
 	      "@class": ".LogEventRequest",
 	      "eventKey": "TEAM_SEARCH_EVENT",
 	      "NAME": search,
 	      "COUNTRY": "UN",
 	      "REQUIRED_TROPHIES": 0,
 	      "requestId": "TEAM_SEARCH_EVENT",
-	  }
-	  send(socket,outobj);
-	  action_performed=1;
+	    }
+	    send(socket,outobj);
+	    action_performed=1;
       } else if (action=="rename") {
-	  log("Renaming player.")
-	  displayName = document.getElementById("rename_displayName").value;
-	  userName = document.getElementById("rename_userName").value;
-	  newPassword = document.getElementById("rename_password").value;
+	    log("Renaming player.")
+	    displayName = document.getElementById("rename_displayName").value;
+	    userName = document.getElementById("rename_userName").value;
+	    newPassword = document.getElementById("rename_password").value;
 
-	  outobj = {
+	    outobj = {
 	    "@class": ".ChangeUserDetailsRequest",
 	    "language": "en",
 	    "requestId": "rename"
-	  }
-	  if (displayName) {
+	    }
+	    if (displayName) {
 	      outobj['displayName']=displayName;
-	  }
-	  if (userName) {
+	    }
+	    if (userName) {
 	      outobj['userName']=userName;
-	  }
-	  if (newPassword) {
+	    }
+	    if (newPassword) {
 	      outobj['newPassword']=newPassword;
-	  }
-	  send(socket,outobj);
-	  action_performed=1;
+	    }
+	    send(socket,outobj);
+	    action_performed=1;
       }
       return;
   } else if (reply['@class']=='.ScriptMessage') {
       if (reply['extCode']=='PLAYER_DATA_UPDATE') {
 	  log(`Logged in as: ${reply['data']['displayName']}`);
 	  log(`User ID: ${reply['data']['userId']}`);
+	  login_team_id = reply['data']['scriptData']['data']['team_id'];
+	  login_team_name = reply['data']['scriptData']['data']['team_name'];
 
 	  golfers = reply['data']['scriptData']['data']['golfers']
 	  hats = reply['data']['scriptData']['data']['hats']
