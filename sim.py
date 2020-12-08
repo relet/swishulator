@@ -1148,7 +1148,7 @@ pygame.quit()
 # In HEADLESS mode, we finish by simulating the best shot in SHOW mode
 if mode == MODE_HEADLESS and best:
     rerun = "{} -m spread -a {} -s 3.5 -n {} -u {} -z {} -v {} -d {} {}".format(sys.argv[0], best35, power, args.powerup, SCALE, args.vertical, WAIT, args.level[0])
-    rerun = "{} -m sim -a {} -s 3.5 -n {} -u {} -z {} -v {} -d {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, args.vertical, WAIT, args.level[0])
+    rerun = "{} -m show -a {} -s 3.5 -n {} -u {} -z {} -v {} -d {} {}".format(sys.argv[0], best[0], power, args.powerup, SCALE, args.vertical, WAIT, args.level[0])
     print(rerun)
     os.system(rerun)
 
