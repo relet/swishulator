@@ -33,6 +33,7 @@ var login_team_name=null;
 
 var TEAM_GOT="5cf89aad5a026804ec84f2db";
 var TEAM_RUDEL="5dc3362f56f78904ef55e174";
+var TEAM_TEUFEL="5fe5db01683d5d054ac47b3a";
 
 function send(socket, arr) {
     sendcount++;
@@ -192,7 +193,7 @@ onmessage = function(event) {
 	      log("No team. Not renaming");
 	      return;
 	    }
-	    if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL)) {
+	    if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_TEUFEL)) {
 	      log("Not a member of GOT or Golfsrudel. Not renaming.");
 		  return;
 	    }
