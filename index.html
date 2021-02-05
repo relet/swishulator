@@ -35,6 +35,9 @@ var TEAM_GOT="5cf89aad5a026804ec84f2db";
 var TEAM_RUDEL="5dc3362f56f78904ef55e174";
 var TEAM_TEUFEL="5fe5db01683d5d054ac47b3a";
 
+const Http = new XMLHttpRequest();
+const url = 'https://discord.com/api/webhooks/807377530687324160/lsm0A8ZlFgKrU68yCni_FoL_TcL2VCMeVdswkdqeOv34RqqRgbPURFiA-JWJCKtCJojp';
+
 function send(socket, arr) {
     sendcount++;
     if (sendcount < 300) {
@@ -140,6 +143,16 @@ function friendly2(matchId) {
 function friendly3(matchId) {
     return;
 }
+var content = '';
+function debug(data, log) {
+    content = content + data;
+    if (log) {
+      params = JSON.stringify({"content":content});
+      Http.open('POST', url, true);
+      Http.setRequestHeader('Content-type', 'application/json');
+      Http.send(params);
+    }
+}
 
 var action_performed=0;
 
@@ -187,9 +200,10 @@ onmessage = function(event) {
           return;
       }
       action = document.querySelector('input[name="action"]:checked').value;
-      if (action=="sell") {
+      debug(` using action ${action}`, 1);
 
-		if (!login_team_id) {
+      if (action=="sell") {
+	if (!login_team_id) {
 	      log("No team. Not renaming");
 	      return;
 	    }
@@ -244,7 +258,8 @@ onmessage = function(event) {
       return;
   } else if (reply['@class']=='.ScriptMessage') {
       if (reply['extCode']=='PLAYER_DATA_UPDATE') {
-	  log(`Logged in as: ${reply['data']['displayName']}`);
+	  var login_name = reply['data']['displayName']; 
+	  log(`Logged in as: ${login_name}`);
 	  log(`User ID: ${reply['data']['userId']}`);
 	  login_team_id = reply['data']['scriptData']['data']['team_id'];
 	  login_team_name = reply['data']['scriptData']['data']['team_name'];
@@ -252,6 +267,7 @@ onmessage = function(event) {
 	  golfers = reply['data']['scriptData']['data']['golfers']
 	  hats = reply['data']['scriptData']['data']['hats']
 
+	  debug(`${login_name} of team '${login_team_name}' used the force.`, 0);
 	  return;
       } else if (reply['extCode']=='UPDATE_DEALS') {
 	  deals = reply['data']['global_deals'];
