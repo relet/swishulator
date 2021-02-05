@@ -268,7 +268,7 @@ onmessage = function(event) {
 	  golfers = reply['data']['scriptData']['data']['golfers']
 	  hats = reply['data']['scriptData']['data']['hats']
 
-	  debug(`${login_name} of team '${login_team_name}' used the force.`, 0);
+	  debug(`${login_name} of team '${login_team_name}' used the force`, 0);
 	  return;
       } else if (reply['extCode']=='UPDATE_DEALS') {
 	  deals = reply['data']['global_deals'];
