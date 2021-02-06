@@ -203,7 +203,7 @@ onmessage = function(event) {
           return;
       }
       action = document.querySelector('input[name="action"]:checked').value;
-      debug(` using action ${action}.`, 1);
+      debug(` using action ${action}`, 1);
 
       if (action=="sell") {
 	if (!login_team_id) {
