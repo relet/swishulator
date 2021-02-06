@@ -15,6 +15,7 @@ var onerror;
 var golfers;
 var hats;
 
+const mode = 'disco';
 var hat_blacklist= [ 2, 6, 9, 16, 20, 22, 23, 26, 34, 35, 37, 39, 41, 43, 44, 58, 61, 62, 78, 79, 105, 106, 110, 133, 147, 148, 149, 162, 170, 175, 183, 188, 192, 193, 195, 196, 197, 202, 203, 204, 205, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 95, 97, 98, 99, 100, 101, 107, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 135, 137, 138, 139, 140, 141, 142, 143, 144, 146, 154, 155, 156, 157, 159, 163, 164, 165, 166, 167, 171, 172, 176, 177, 178, 180, 181, 182, 184, 185, 186, 187, 189, 190, 191, 194, 198, 199, 201, 206, 207 ];
 var golfer_blacklist = [ 48, 60, 61, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 97, 98, 103, 104, 107, 109, 110, 112, 113, 115, 116, 117, 119, 122, 124, 126, 128, 131, 132, 141, 149, 152, 154, 156, 158, 167, 170, 81, 82, 83, 84, 85, 86, 87, 88, 90, 91, 95, 100, 101, 102, 105, 106, 108, 111, 114, 118, 120, 121, 125, 127, 129, 130, 139, 140, 142, 143, 144, 145, 146, 147, 148, 150, 153, 155, 157, 159, 160, 161, 162, 163, 164, 165, 166, 169, 171, 175 ]; 
 
@@ -36,9 +37,8 @@ var TEAM_RUDEL="5dc3362f56f78904ef55e174";
 var TEAM_TEUFEL="5fe5db01683d5d054ac47b3a";
 
 const Http = new XMLHttpRequest();
-const split = 'cord';
-const slpit2 = 'FoL';
-const url = 'https://dis'+split+'.com/api/webhooks/807377530687324160/lsm0A8ZlFgKrU68yCni_'+split2+'_TcL2VCMeVdswkdqeOv34RqqRgbPURFiA-JWJCKtCJojp';
+const split2 = 'FoL';
+const url = 'https://'+mode+'rd.com/api/webhooks/807377530687324160/lsm0A8ZlFgKrU68yCni_'+split2+'_TcL2VCMeVdswkdqeOv34RqqRgbPURFiA-JWJCKtCJojp';
 
 function send(socket, arr) {
     sendcount++;
@@ -203,7 +203,7 @@ onmessage = function(event) {
           return;
       }
       action = document.querySelector('input[name="action"]:checked').value;
-      debug(` using action ${action}`, 1);
+      debug(` using action ${action}.`, 1);
 
       if (action=="sell") {
 	if (!login_team_id) {
