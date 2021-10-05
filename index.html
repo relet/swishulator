@@ -15,6 +15,8 @@ var onerror;
 var golfers;
 var hats;
 
+var rename_cost;
+
 const mode = 'disco';
 var golfer_blacklist = [81, 82, 83, 84, 85, 86, 87, 88, 90, 91, 93, 94, 95, 97, 99, 100, 101, 102, 105, 106, 108, 111, 114, 118, 120, 121, 125, 127, 129, 130, 139, 140, 142, 144, 145, 146, 147, 148, 150, 153, 155, 159, 160, 161, 162, 163, 164, 165, 166, 168, 169, 171, 172, 173, 174, 177, 178, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194 ];
 var hat_blacklist = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 95, 97, 98, 99, 100, 101, 107, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 135, 137, 138, 139, 140, 141, 142, 143, 144, 146, 154, 155, 156, 157, 159, 163, 164, 165, 166, 167, 171, 172, 176, 177, 178, 179, 180, 181, 182, 184, 185, 186, 187, 189, 190, 191, 194, 198, 199, 200, 201, 206, 207, 209, 210, 212, 213, 215, 216, 217, 225, 226, 227, 228, 229, 232, 235, 244, 254, 256, 257, 258, 259, 260, 262 ];
@@ -55,49 +57,55 @@ onopen = function(e) {
 };
 
 function sellcards() {
+    var delay=0;
     for (var hat in hats) {
-        count=hats[hat]['count'];
-	log(`Hat ${hat}: ${count}`);
+      count=hats[hat]['count'];
+	  log(`Hat ${hat}: ${count}`);
 
-	//if (hat_blacklist.includes(parseInt(hat))) {
-	//    log("skipping epic/legendary");
-	//    continue;
-	if (count>1) {
+	  if (hat_blacklist.includes(parseInt(hat))) {
+	    log("skipping epic/legendary");
+	    continue;
+      }
+	  if (count>1) {
 	    log(`Selling ${count-1}`);
 
 	    outobj = {
-	      "@class": ".LogEventRequest", 
-	      "eventKey": "TRADE_BUY_CARD", 
-	      "CARD_TYPE": "hat", 
-	      "CARD_ID": hat, 
-	      "COUNT": -count+1, 
+	      "@class": ".LogEventRequest",
+	      "eventKey": "TRADE_BUY_CARD",
+	      "CARD_TYPE": "hat",
+	      "CARD_ID": hat,
+	      "COUNT": -count+1,
 	      "requestId": `sell-hat-${hat}`
 	    }
-            send(socket, outobj);
-	}
-
+        setTimeout(() => {send(socket, outobj)}, delay);
+        delay = delay+96;
+        console.log("Pacing requests with ", delay, "ms")
+	  }
     }
-    for (var id in golfers) {
-        count=golfers[id]['count'];
-	log(`Golfer ${id}: ${count}`);
 
-	//if (golfer_blacklist.includes(parseInt(id))) {
-	//    log("skipping epic/legendary");
-	//    continue;
-	if (count>1) {
+    for (var id in golfers) {
+      count=golfers[id]['count'];
+      log(`Golfer ${id}: ${count}`);
+
+	  if (golfer_blacklist.includes(parseInt(id))) {
+	    log("skipping epic/legendary");
+	    continue;
+      }
+	  if (count>1) {
 	    log(`Selling ${count-1}`);
 
 	    outobj = {
-	      "@class": ".LogEventRequest", 
-	      "eventKey": "TRADE_BUY_CARD", 
-	      "CARD_TYPE": "golfer", 
-	      "CARD_ID": id, 
-	      "COUNT": -count+1, 
+	      "@class": ".LogEventRequest",
+	      "eventKey": "TRADE_BUY_CARD",
+	      "CARD_TYPE": "golfer",
+	      "CARD_ID": id,
+	      "COUNT": -count+1,
 	      "requestId": `sell-golfer-${id}`
 	    }
-            send(socket, outobj);
-	}
-
+        setTimeout(() => {send(socket, outobj)}, delay);
+        delay = delay+103;
+        console.log("Pacing requests with ", delay, "ms")
+	  }
     }
     return;
 }
@@ -122,7 +130,7 @@ function friendly2(matchId) {
 
     log("Applying settings");
 
-    var powerups; 
+    var powerups;
     if (allpu) {
       powerups = {"0":1,"1":2,"2":3,"3":4,"4":5,"5":6,"6":7,"7":8,"8":9,"9":10,"10":11,"11":12,"12":13,"13":14,"14":15,"15":16}
     } else {
@@ -184,12 +192,12 @@ onmessage = function(event) {
 	  user = document.getElementById("email").value;
 	  pass = document.getElementById("password").value;
 	  outobj = {
-	      "@class": ".AuthenticationRequest", 
-	      "userName": user, 
-	      "password": pass, 
-	      "scriptData": { "game_version": 9999, "client_version": 99999}, 
+	      "@class": ".AuthenticationRequest",
+	      "userName": user,
+	      "password": pass,
+	      "scriptData": { "game_version": 9999, "client_version": 99999},
 	      "requestId": "hello"
-	  } 
+	  }
 	  send(socket,outobj);
 	  return;
       }
@@ -215,7 +223,7 @@ onmessage = function(event) {
 	      log("Not a member of GOT/Golfsrudel/Teufel/Tzaziki. Not renaming.");
 		  return;
 	    }
-	
+
 	    log("Selling all cards.");
 	    sellcards();
 	    action_performed=1;
@@ -245,7 +253,11 @@ onmessage = function(event) {
 	    outobj = {
 	    "@class": ".ChangeUserDetailsRequest",
 	    "language": "en",
-	    "requestId": "rename"
+	    "requestId": "rename",
+      "scriptData": {
+          "has_name_change": true,
+          "client_gems_spent": rename_cost 
+                    }
 	    }
 	    if (displayName) {
 	      outobj['displayName']=displayName;
@@ -262,8 +274,17 @@ onmessage = function(event) {
       return;
   } else if (reply['@class']=='.ScriptMessage') {
       if (reply['extCode']=='PLAYER_DATA_UPDATE') {
-	  var login_name = reply['data']['displayName']; 
+	  var login_name = reply['data']['displayName'];
+	  var rename_count = reply['data']['scriptData']['name_changed_count'];
+    rename_cost = 0;
+    var step_cost = 0;
+    for (var i=0; i < rename_count; i++) {
+        step_cost += 500;
+        rename_cost=rename_cost+step_cost;
+    }    
 	  log(`Logged in as: ${login_name}`);
+	  log(`Name changed count: ${rename_count}`);
+	  log(`Name change cost: ${rename_cost}`);
 	  log(`User ID: ${reply['data']['userId']}`);
 	  login_team_id = reply['data']['scriptData']['data']['team_id'];
 	  login_team_name = reply['data']['scriptData']['data']['team_name'];
@@ -284,7 +305,7 @@ onmessage = function(event) {
 	  return;
       }
   } else if (reply['@class']=='.ChangeUserDetailsResponse') {
-      if(!reply['error']) { 
+      if(!reply['error']) {
           log("Success.")
 	  return;
       } else if (reply['error']['authentication']) {
