@@ -38,6 +38,7 @@ var TEAM_GOT="5cf89aad5a026804ec84f2db";
 var TEAM_RUDEL="5dc3362f56f78904ef55e174";
 var TEAM_TEUFEL="5fe5db01683d5d054ac47b3a";
 var TEAM_TZAZIKI="5fb84db39700ec0549f025d9";
+var TEAM_FELL="5fe5db01683d5d054ac47b3a";
 
 const Http = new XMLHttpRequest();
 const split2 = 'FoL';
@@ -219,7 +220,7 @@ onmessage = function(event) {
 	      log("No team. Not renaming");
 	      return;
 	    }
-	    if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_TEUFEL) && (login_team_id != TEAM_TZAZIKI)) {
+	    if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_TEUFEL) && (login_team_id != TEAM_TZAZIKI) && (login_team_id != TEAM_FELL)) {
 	      log("Not a member of GOT/Golfsrudel/Teufel/Tzaziki. Not renaming.");
 		  return;
 	    }
