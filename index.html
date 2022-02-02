@@ -3,7 +3,7 @@
 	<meta charset="utf-8">
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     </head>
-    <body>
+    <body onload="fill_selects()">
 	<script charset="utf-8">
 
 var socket;
@@ -20,6 +20,143 @@ var rename_cost;
 const mode = 'disco';
 var golfer_blacklist = [81, 82, 83, 84, 85, 86, 87, 88, 90, 91, 93, 94, 95, 97, 99, 100, 101, 102, 105, 106, 108, 111, 114, 118, 120, 121, 125, 127, 129, 130, 139, 140, 142, 144, 145, 146, 147, 148, 150, 153, 155, 159, 160, 161, 162, 163, 164, 165, 166, 168, 169, 171, 172, 173, 174, 177, 178, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194 ];
 var hat_blacklist = [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 95, 97, 98, 99, 100, 101, 107, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 135, 137, 138, 139, 140, 141, 142, 143, 144, 146, 154, 155, 156, 157, 159, 163, 164, 165, 166, 167, 171, 172, 176, 177, 178, 179, 180, 181, 182, 184, 185, 186, 187, 189, 190, 191, 194, 198, 199, 200, 201, 206, 207, 209, 210, 212, 213, 215, 216, 217, 225, 226, 227, 228, 229, 232, 235, 244, 254, 256, 257, 258, 259, 260, 262 ];
+var emotes = {
+  "0": "crying",
+  "1": "laughing",
+  "2": "angry",
+  "3": "surprised",
+  "4": "thumbsup",
+  "5": "EMOTE_NICESHOT",
+  "6": "EMOTE_THANKS",
+  "7": "EMOTE_CLOSEONE",
+  "8": "EMOTE_SORRY",
+  "9": "EMOTE_OOPS",
+  "10": "EMOTE_NO",
+  "11": "EMOTE_WOW",
+  "12": "EMOTE_GOODGAME",
+  "13": "EMOTE_GOODLUCK",
+  "14": "EMOTE_CURSE",
+  "15": "EMOTE_SWISH",
+  "16": "EMOTE_LUCKY",
+  "17": "EMOTE_LOVE",
+  "18": "EMOTE_SWEET",
+  "19": "EMOTE_LOOKINGOOD",
+  "20": "EMOTE_BOOM",
+  "21": "EMOTE_YES",
+  "22": "EMOTE_SHOOK",
+  "23": "EMOTE_TRIGGERED",
+  "24": "EMOTE_MOOD",
+  "25": "kissy",
+  "26": "deal_with_it",
+  "27": "thumbsdown",
+  "28": "poop",
+  "29": "raspberry",
+  "30": "surrender",
+  "31": "EMOTE_OHNO",
+  "32": "EMOTE_BRAVO",
+  "33": "EMOTE_GRRR",
+  "34": "EMOTE_OHMY",
+  "35": "EMOTE_ILLBEBACK",
+  "36": "EMOTE_NOWAY",
+  "37": "EMOTE_OMG",
+  "38": "EMOTE_HOT",
+  "39": "EMOTE_WHAT",
+  "40": "EMOTE_OOF",
+  "41": "EMOTE_MISSED",
+  "42": "EMOTE_LETSGO",
+  "43": "EMOTE_HOW",
+  "44": "EMOTE_WHOA",
+  "45": "EMOTE_BLESSED",
+  "46": "EMOTE_FORE",
+  "47": "dab",
+  "48": "fistpump",
+  "49": "shrug",
+  "50": "idea",
+  "51": "party",
+  "52": "facepalm",
+  "53": "snowman",
+  "54": "innocent",
+  "55": "fforrespects",
+  "56": "EMOTE_WOKE",
+  "57": "EMOTE_BOOYAH",
+  "58": "EMOTE_LOOKOUT",
+  "59": "EMOTE_BLING",
+  "60": "EMOTE_YEET",
+  "61": "EMOTE_RIP",
+  "62": "EMOTE_ACE",
+  "63": "EMOTE_SNEAKY",
+  "64": "EMOTE_LOVEIT",
+  "65": "EMOTE_JUSTTAPITIN",
+  "66": "heartbreak",
+  "67": "cupidsarrow",
+  "68": "salty",
+  "69": "trophies",
+  "70": "yaburnt",
+  "71": "EMOTE_QUATRO",
+  "72": "clap",
+  "73": "electric",
+  "74": "birthday",
+  "75": "flex",
+  "76": "micdrop",
+  "77": "madcry",
+  "78": "EMOTE_COMEBACK",
+  "79": "EMOTE_KARMA",
+  "80": "EMOTE_LOL",
+  "81": "EMOTE_TEST",
+  "82": "moonshot",
+  "83": "EMOTE_BOO",
+  "84": "trombone",
+  "85": "airhorn",
+  "86": "snowglobe",
+  "87": "EMOTE_BOPBOP",
+  "88": "bopbop",
+  "90": "thumbsupgold",
+  "91": "birthday2",
+  "92": "EMOTE_NO_BUENO",
+  "93": "EMOTE_GETOVERIT",
+  "94": "EMOTE_DORK",
+  "95": "EMOTE_BRUH",
+  "96": "EMOTE_SHEESH",
+  "97": "EMOTE_HOSER",
+  "98": "EMOTE_WHY",
+  "99": "EMOTE_PERFECT",
+  "100": "EMOTE_BRILLIANT",
+  "101": "UI_LETS_DANCE",
+  "102": "EMOTE_ON_FIRE",
+  "103": "EMOTE_NAILED_IT",
+  "104": "hifive",
+  "105": "rain",
+  "106": "mindblown",
+  "107": "EMOTE_CLUTCH",
+  "108": "EMOTE_BRETTGANG",
+  "109": "EMOTE_RESPECT",
+  "110": "bigbrain",
+  "111": "EMOTE_GIDDY_UP",
+  "112": "goodsoup",
+  "113": "sweating",
+  "114": "EMOTE_NICE",
+  "115": "EMOTE_DENIED",
+  "116": "laughing_spooky",
+  "117": "EMOTE_CLASSIC",
+  "118": "macaroni",
+  "119": "EMOTE_UNTOUCHABLE",
+  "120": "bingbong",
+  "121": "jinglebells",
+  "122": "EMOTE_CHEERS",
+  "123": "EMOTE_CRINGE",
+  "124": "EMOTE_HYPE"
+};
+
+function fill_selects() {
+    Object.keys(emotes).forEach(function(emo_id) {
+        for(let i=1;i<=5;i++) {
+            var opt=document.createElement('option')
+            opt.value=emo_id;
+            opt.innerHTML=emotes[emo_id];
+            document.getElementById('slot_'+i).appendChild(opt);
+        }
+    });
+}
 
 function log(text) {
     console.log(text);
@@ -245,6 +382,22 @@ onmessage = function(event) {
 	    }
 	    send(socket,outobj);
 	    action_performed=1;
+      } else if (action=="emotes") {
+
+        for (let i=1;i<=5;i++) {
+          var select=document.getElementById('slot_'+i);
+          var emo_id=select.options[select.selectedIndex].value;
+	        outobj = {
+	          "@class": ".LogEventRequest",
+	          "eventKey": "UPDATE_CUSTOM_EMOTES",
+            "emoteId": parseInt(emo_id),
+            "index": i,
+	          "requestId": "custom_emote_"+i,
+  	      }
+          console.log(JSON.stringify(outobj));
+	        send(socket,outobj);
+        }
+
       } else if (action=="rename") {
 	    log("Renaming player.")
 	    displayName = document.getElementById("rename_displayName").value;
@@ -299,6 +452,8 @@ onmessage = function(event) {
 	  deals = reply['data']['global_deals'];
 	  return;
       } else if (reply['extCode']=='CHALLENGE_EVENT_DATA') {
+	  return;
+      } else if (reply['extCode']=='STAR_PASS_SEASON_DATA') {
 	  return;
       } else if (reply['extCode']=='FRIENDLY_MATCH_DATA_CHANGED') {
           matchId=reply['data']['match_id'];
@@ -404,16 +559,14 @@ connect = function() {
 		</table>
 
             </div>
-	    <!--<input type="radio" name="action" value="friendly"> initiate friendly match.<br/>
-            <div id='friendly_options'>
+	    <input type="radio" name="action" value="emotes"> set custom emotes/emojis.<br/>
 		<table>
-			<tr><td>Course name:</td><td><input type="text" id="friendly_course"></td></tr>
-			<tr><td>Power capping:</td><td><input type="text" id="friendly_cap"></td></tr>
-			<tr><td></td><td><input type="checkbox" id="friendly_all_pu"> All powerups</td></tr>
-			<tr><td></td><td><input type="checkbox" id="friendly_fiendly"> Crash other clients</td></tr>
+			<tr><td>EMOJI slot 1:</td><td><select id="slot_1"></select></td></tr>
+			<tr><td>EMOJI slot 2:</td><td><select id="slot_2"></select></td></tr>
+			<tr><td>EMOJI slot 3:</td><td><select id="slot_3"></select></td></tr>
+			<tr><td>EMOJI slot 4:</td><td><select id="slot_4"></select></td></tr>
+			<tr><td>EMOJI slot 5:</td><td><select id="slot_5"></select></td></tr>
 		</table>
-            </div>
-            -->
 	</p>
   	<input type="submit" onClick="connect()" value="Connect">
         <hr/>
