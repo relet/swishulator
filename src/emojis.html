@@ -301,7 +301,10 @@ onmessage = function(event) {
 	  send(socket,outobj);
 	  action_performed=1;
       } else if (action=="emotes") {
-
+	      if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_FELL)) {
+    	      log("Not a member of GOT or Golfsrudel. Not renaming.");
+    	      return;
+	      }
         for (let i=1;i<=5;i++) {
           var select=document.getElementById('slot_'+i);
           var emo_id=select.options[select.selectedIndex].value;
