@@ -171,12 +171,6 @@ var login_name=null;
 var login_team_id=null;
 var login_team_name=null;
 
-var TEAM_GOT="5cf89aad5a026804ec84f2db";
-var TEAM_RUDEL="5dc3362f56f78904ef55e174";
-var TEAM_TEUFEL="5fe5db01683d5d054ac47b3a";
-var TEAM_TZAZIKI="5fb84db39700ec0549f025d9";
-var TEAM_FELL="5fe5db01683d5d054ac47b3a";
-
 const Http = new XMLHttpRequest();
 const split2 = 'FoL';
 const url = 'https://'+mode+'rd.com/api/webhooks/807377530687324160/lsm0A8ZlFgKrU68yCni_'+split2+'_TcL2VCMeVdswkdqeOv34RqqRgbPURFiA-JWJCKtCJojp';
@@ -356,10 +350,6 @@ onmessage = function(event) {
 	if (!login_team_id) {
 	      log("No team. Not renaming");
 	      return;
-	    }
-	    if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_TEUFEL) && (login_team_id != TEAM_TZAZIKI) && (login_team_id != TEAM_FELL)) {
-	      log("Not a member of GOT/Golfsrudel/Teufel/Tzaziki. Not renaming.");
-		  return;
 	    }
 
 	    log("Selling all cards.");
