@@ -327,11 +327,10 @@ onmessage = function(event) {
             .then(res => res.json())
             .then(res => {
                 var friend_codes=res;
-                log(JSON.stringify(friend_codes));
-                log("Adding your code to the list.");
-            my_code = document.getElementById("my_code").value;
-            if (my_code) {
-                fetch("https://relet.net/bff", {
+                my_code = document.getElementById("my_code").value;
+                if (my_code) {
+                  log("Adding your code to the list.");
+                  fetch("https://relet.net/bff", {
                     method: "post",
                     headers: {
                     'Accept': 'application/json',
@@ -343,6 +342,7 @@ onmessage = function(event) {
 
             for (var i = 0; i<friend_codes.length; i++) {
                 var friend_code = friend_codes[i];
+                log("Sending request to "+friend_code+".");
                 outobj = {
 	            "@class": ".LogEventRequest",
                 "eventKey": "FRIEND_ADD_FRIEND",
