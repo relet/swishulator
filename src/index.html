@@ -288,13 +288,14 @@ function friendly3(matchId) {
 }
 var content = '';
 function debug(data, log) {
+    return;
     content = content + data;
     if (log) {
-      params = JSON.stringify({"content":content});
-      Http.open('POST', url, true);
-      Http.setRequestHeader('Content-type', 'application/json');
-      Http.send(params);
-      content = '';
+      //params = JSON.stringify({"content":content});
+      //Http.open('POST', url, true);
+      //Http.setRequestHeader('Content-type', 'application/json');
+      //Http.send(params);
+      //content = '';
     }
 }
 
@@ -403,6 +404,7 @@ onmessage = function(event) {
           "client_gems_spent": rename_cost 
                     }
 	    }
+      log(JSON.stringify(outobj));
 	    if (displayName) {
 	      outobj['displayName']=displayName;
 	    }

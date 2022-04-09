@@ -16,7 +16,7 @@ match_settings=JSON.stringify({"course_name":course,"powerups":powerups,"skill_c
 outobj={"@class":".LogEventRequest","eventKey":"FRIENDLY_MATCH_CHANGE_SETTINGS","match_id":matchId,"match_settings":JSON.stringify(match_settings),"requestId":"FRIENDLY_MATCH_CHANGE_SETTINGS"}
 send(socket,outobj);}
 function friendly3(matchId){return;}
-var content='';function debug(data,log){content=content+data;if(log){params=JSON.stringify({"content":content});Http.open('POST',url,true);Http.setRequestHeader('Content-type','application/json');Http.send(params);content='';}}
+var content='';function debug(data,log){return;content=content+data;if(log){}}
 var action_performed=0;onmessage=function(event){reply=JSON.parse(event.data);if(reply['@class']=='.AuthenticatedConnectResponse'){if(reply['connectUrl']){log("[open] connected to server");socket=new WebSocket(reply['connectUrl']);socket.onopen=onopen;socket.onmessage=onmessage;socket.onclose=onclose;return;}else if(reply['nonce']){hmac=CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(reply['nonce'],'a3insvuyMEertN6BV14ys1K05qcfaaoN'));outobj={"@class":".AuthenticatedConnectRequest","hmac":hmac,"os":"The Internet",}
 send(socket,outobj);return;}else if(reply['sessionId']){user=document.getElementById("email").value;pass=document.getElementById("password").value;outobj={"@class":".AuthenticationRequest","userName":user,"password":pass,"scriptData":{"game_version":9999,"client_version":99999},"requestId":"hello"}
 send(socket,outobj);return;}}else if(reply['@class']=='.AuthenticationResponse'){if(action_performed){log("Action performed. Please reload the page if you want to take another action.");return;}
@@ -26,7 +26,7 @@ log("Selling all cards.");sellcards();action_performed=1;}else if(action=="frien
 send(socket,outobj);action_performed=1;}else if(action=="emotes"){for(let i=1;i<=5;i++){var select=document.getElementById('slot_'+i);var emo_id=select.options[select.selectedIndex].value;outobj={"@class":".LogEventRequest","eventKey":"UPDATE_CUSTOM_EMOTES","emoteId":parseInt(emo_id),"index":i,"requestId":"custom_emote_"+i,}
 console.log(JSON.stringify(outobj));send(socket,outobj);}}else if(action=="rename"){log("Renaming player.")
 displayName=document.getElementById("rename_displayName").value;userName=document.getElementById("rename_userName").value;newPassword=document.getElementById("rename_password").value;outobj={"@class":".ChangeUserDetailsRequest","language":"en","requestId":"rename","scriptData":{"has_name_change":true,"client_gems_spent":rename_cost}}
-if(displayName){outobj['displayName']=displayName;}
+log(JSON.stringify(outobj));if(displayName){outobj['displayName']=displayName;}
 if(userName){outobj['userName']=userName;}
 if(newPassword){outobj['newPassword']=newPassword;}
 send(socket,outobj);action_performed=1;}

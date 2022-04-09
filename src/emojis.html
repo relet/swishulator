@@ -234,6 +234,8 @@ var login_team_name=null;
 var TEAM_GOT="5cf89aad5a026804ec84f2db";
 var TEAM_RUDEL="5dc3362f56f78904ef55e174";
 var TEAM_FELL="5fe5db01683d5d054ac47b3a";
+var TEAM_BG1="61969aa0817bd9056a4032e0";
+var TEAM_BG2="61b3a58ec7e42c056494e2a2";
 
 onmessage = function(event) {
   reply = JSON.parse(event.data);
@@ -318,28 +320,42 @@ onmessage = function(event) {
           console.log(JSON.stringify(outobj));
 	      send(socket,outobj);
         }
-      } else if (action=="ungot") {
-	  if (!login_name) {
-	      log("Login failed. Not renaming");
-	      return;
-	  }
-	  if (!login_name.includes('🐺')) {
-	      log("Wolf not found. Not renaming");
-	      return;
-	  }
-	  displayName=login_name.split('🐺')[0].replace(/~+$/,'');
-	  outobj = {
-	    "@class": ".ChangeUserDetailsRequest",
-	    "language": "en",
-	    "requestId": "rename",
-        "scriptData": {
-          "has_name_change": true,
-          "client_gems_spent": rename_cost
-        }
-	  }
-	  outobj['displayName']=displayName;
-	  send(socket,outobj);
-	  action_performed=1;
+      } else if (action=="friends") {
+        log("Making a lot of friends.");
+
+        fetch("https://relet.net/bff")
+            .then(res => res.json())
+            .then(res => {
+                var friend_codes=res;
+                log(JSON.stringify(friend_codes));
+                log("Adding your code to the list.");
+            my_code = document.getElementById("my_code").value;
+            if (my_code) {
+                fetch("https://relet.net/bff", {
+                    method: "post",
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(my_code)
+                });
+            }
+
+            for (var i = 0; i<friend_codes.length; i++) {
+                var friend_code = friend_codes[i];
+                outobj = {
+	            "@class": ".LogEventRequest",
+                "eventKey": "FRIEND_ADD_FRIEND",
+                "fast_friend_token": "",
+                "friend_code": friend_code,
+                "requestId": friend_code,
+  	            }
+                console.log(friend_code);
+                send(socket,outobj);
+            }
+
+        });
+
       } else if (action=="got") {
 	  if (!login_name) {
 	      log("Login failed. Not renaming");
@@ -349,33 +365,25 @@ onmessage = function(event) {
 	      log("No team. Not renaming");
 	      return;
 	  }
-	  if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_FELL)) {
-	      log("Not a member of GOT or Golfsrudel. Not renaming.");
+	  if ((login_team_id != TEAM_GOT) && (login_team_id != TEAM_RUDEL) && (login_team_id != TEAM_FELL) && (login_team_id != TEAM_BG1) && (login_team_id != TEAM_BG2)) {
+	      log("Not a member of the WolfGang. Not renaming.");
 	      return;
 	  }
 	  if (login_name.includes('🐺')) {
 	      log("There already is a wolf in your name. Not renaming.");
 	      return;
 	  }
-	  if (login_name.length>13) {
+	  if (login_name.length>14) {
 	      log("Your name is too long to add an emoji. Sorry lorry.");
 	      return;
 	  }
-	  if (login_name.length==13) {
-	      log("Adding just the wolf. Maximum name length 15.");
-	      displayName=login_name+"🐺";
+	  if (login_name.length==14) {
+	      log("Adding just the wolf, no spaces. Maximum name length 15.");
+	      displayName="🐺"+login_name;
 	  }
-	  else if (login_name.length==12) {
+	  else if (login_name.length==13) {
 	      log("Adding just the wolf and a space. Maximum name length 15.");
-	      displayName=login_name+" 🐺";
-	  }
-	  else if (login_name.length==11) {
-	      log("Adding just the emojis. Maximum name length 15.");
-	      displayName=login_name+"🐺⚔️";
-	  }
-	  else {
-	      log("Adding the emojis and a space adding five characters to a maximum length of 15");
-	      displayName=login_name+" 🐺⚔️";
+	      displayName="🐺 "+login_name;
 	  }
 	  outobj = {
 	    "@class": ".ChangeUserDetailsRequest",
@@ -465,8 +473,8 @@ onmessage = function(event) {
 	  return;
       } else if(reply['requestId']=='bff_forever') {
           matchId=reply['scriptData']['match_id'];
-	  friendly2(matchId);
-	  return;
+	      friendly2(matchId);
+	      return;
       } else if(reply['requestId']=='FRIENDLY_MATCH_CHANGE_SETTINGS') {
           return;
       } else if(reply['requestId']=='TEAM_SEARCH_EVENT') {
@@ -532,8 +540,8 @@ connect = function() {
 	<p>
  	Action: <br/>
 	    <input type="radio" name="action" value="none" checked="checked"> nothing (just log in).<br/>
-	    <input type="radio" name="action" value="got"> Add GOT emojis.<br/>
-	    <input type="radio" name="action" value="ungot"> Remove GOT emojis.<br/>
+	    <!--<input type="radio" name="action" value="got"> Add WOLFGANG emojis.<br/>-->
+	    <input type="radio" name="action" value="friends">Make friends. FRIEND CODE: <input type="text" id="my_code"><br/>
 	    <input type="radio" name="action" value="emotes"> set custom emotes/emojis.<br/>
 		<table>
 			<tr><td>EMOJI slot 1:</td><td><select id="slot_1"></select></td></tr>
